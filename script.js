@@ -1,3 +1,8 @@
+const flagshipStyles = document.createElement('link');
+flagshipStyles.rel = 'stylesheet';
+flagshipStyles.href = 'flagship.css';
+document.head.appendChild(flagshipStyles);
+
 const button = document.querySelector('.menu');
 const nav = document.querySelector('.nav');
 if (button && nav) {
