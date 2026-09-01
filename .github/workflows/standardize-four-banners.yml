@@ -1,0 +1,140 @@
+name: Standardize four flagship banners
+
+on:
+  push:
+    paths:
+      - '.github/workflows/standardize-four-banners.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  standardize-banners:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild Steps 06 10 12 14 to match 01 07 15 banner system
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFont
+          import subprocess
+          from pathlib import Path
+
+          atlas = Image.open('assets/flagship-hq.webp').convert('RGB')
+          w, h = atlas.size
+          assert w == h and w % 4 == 0, f'Unexpected atlas size: {atlas.size}'
+          cell = w // 4
+
+          step07 = atlas.crop((2*cell, 1*cell, 3*cell, 2*cell))
+
+          def fp(pattern):
+              return subprocess.check_output(['fc-match','-f','%{file}',pattern], text=True).strip()
+
+          bold = fp('Arimo:style=Bold')
+          regular = fp('Arimo:style=Regular')
+          green = (5, 90, 52)
+          gray = (70, 72, 72)
+
+          header_h = round(cell * 0.234375)
+          xdiv = round(cell * 0.179)
+          xt = round(cell * 0.198)
+          title_y = round(cell * 0.033)
+          subtitle_y = round(cell * 0.102)
+
+          bx0, by0 = round(cell*0.678), round(cell*0.018)
+          bx1, by1 = round(cell*0.988), round(cell*0.112)
+          brand = step07.crop((bx0, by0, bx1, by1))
+
+          def fit_title(draw, text):
+              max_width = round(cell * 0.455)
+              size = round(cell * 0.045)
+              min_size = round(cell * 0.033)
+              while size > min_size:
+                  f = ImageFont.truetype(bold, size)
+                  bb = draw.textbbox((0,0), text, font=f)
+                  if bb[2] - bb[0] <= max_width:
+                      return f
+                  size -= 1
+              return ImageFont.truetype(bold, min_size)
+
+          specs = {
+              '06': {'col':1,'row':1,'title':'SEPARATE','subtitle':'Recyclables, organics, energy candidates,\nspecial waste and true residual are divided.'},
+              '10': {'col':1,'row':2,'title':'SHRED','subtitle':'Dried material is reduced\nto the required size.'},
+              '12': {'col':3,'row':2,'title':'HEAT THE DRYER','subtitle':'RDF is used in a controlled thermal system and\nrecovered heat returns to Step 09.'},
+              '14': {'col':1,'row':3,'title':'RECOVER OR CONTROL ASH','subtitle':'Tested bottom ash may support construction use;\nother residues are controlled.'},
+          }
+
+          for num, s in specs.items():
+              x0, y0 = s['col']*cell, s['row']*cell
+              source = atlas.crop((x0, y0, x0+cell, y0+cell))
+              out = source.copy()
+
+              d = ImageDraw.Draw(out)
+              d.rectangle((0, 0, cell, header_h), fill='white')
+
+              d.text((round(cell*0.025), round(cell*0.025)), num,
+                     font=ImageFont.truetype(bold, round(cell*0.115)), fill=green)
+              d.rectangle((xdiv, round(cell*0.020), xdiv+2, round(cell*0.184)), fill=green)
+
+              title_font = fit_title(d, s['title'])
+              d.text((xt, title_y), s['title'], font=title_font, fill=green)
+              d.multiline_text((xt, subtitle_y), s['subtitle'],
+                     font=ImageFont.truetype(regular, round(cell*0.023)),
+                     fill=gray, spacing=round(cell*0.006))
+
+              out.paste(brand, (bx0, by0))
+              out.save(f"assets/step{num}-standardized.webp", 'WEBP', quality=96, method=6)
+              print('Created', num, out.size)
+          PY
+
+      - name: Point website to corrected individual images
+        run: |
+          cat >> flagship-visuals.css <<'CSS'
+
+          /* Standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
+          .step-thumb.step-06,
+          .detail-visual.step-06{
+            background-image:url("assets/step06-standardized.webp?v=20260901std4a");
+            background-size:cover;
+            background-position:center;
+          }
+          .step-thumb.step-10,
+          .detail-visual.step-10{
+            background-image:url("assets/step10-standardized.webp?v=20260901std4a");
+            background-size:cover;
+            background-position:center;
+          }
+          .step-thumb.step-12,
+          .detail-visual.step-12{
+            background-image:url("assets/step12-standardized.webp?v=20260901std4a");
+            background-size:cover;
+            background-position:center;
+          }
+          .step-thumb.step-14,
+          .detail-visual.step-14{
+            background-image:url("assets/step14-standardized.webp?v=20260901std4a");
+            background-size:cover;
+            background-position:center;
+          }
+          CSS
+
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('flagship.html')
+          s = p.read_text()
+          s = s.replace('flagship-visuals.css?v=20260901f', 'flagship-visuals.css?v=20260901g')
+          p.write_text(s)
+          PY
+
+      - name: Commit standardized banners
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/step06-standardized.webp assets/step10-standardized.webp assets/step12-standardized.webp assets/step14-standardized.webp flagship-visuals.css flagship.html
+          git commit -m "Standardize banners for steps 06 10 12 and 14"
+          git push
