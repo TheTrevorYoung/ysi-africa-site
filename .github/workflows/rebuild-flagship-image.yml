@@ -18,29 +18,44 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate atlas chunks and decode
+      - name: Validate approved atlas source and decode
         shell: python
         run: |
           import base64, hashlib
           from pathlib import Path
-          expected = [
-            (12000, 'a7228d81ecd7ef3162beb3503ffdeae4f041cf6f990ac3275bc50f38d91622f0'),
-            (12000, 'c806be40eda95793a0856fcdb04b2644ee1647979a6ad86a525cbbc4f5a8fe9e'),
-            (12000, '5fb14e86129a6eb814c6bd48ef8f0236c8d406422d1113cb5b6bc3b3c543f2f6'),
-            (9560, 'cb1153fb92c0f9a68fb17a6692d1aefb8dbcfed1c3800d873e81fcaaad1f3799'),
+
+          def read_clean(path):
+              return ''.join(Path(path).read_text().split())
+
+          chunk0 = read_clean('assets/flagship-clean-00.txt')
+          chunk1a = read_clean('assets/flagship-fix-01a.txt')
+          chunk1b = read_clean('assets/flagship-fix-01b.txt')
+          chunk1c = read_clean('assets/flagship-fix-01c.txt')
+          chunk1 = chunk1a + chunk1b + chunk1c
+          chunk2 = read_clean('assets/flagship-clean-02.txt')
+          chunk3 = read_clean('assets/flagship-clean-03.txt')
+
+          checks = [
+              ('chunk0', chunk0, 12000, 'a7228d81ecd7ef3162beb3503ffdeae4f041cf6f990ac3275bc50f38d91622f0'),
+              ('chunk1a', chunk1a, 4000, 'e0dc5edfaeec6f2aed18c6d2c4ce90633ab3ebde78b769a67fef901d84a755e4'),
+              ('chunk1b', chunk1b, 4000, 'a829847947c4f32793de704c5e384e43fb7714c5109820c604ac0d7039a8eaa2'),
+              ('chunk1c', chunk1c, 4000, 'ff4b59d99db8af1060f89503c6868f9751d07175a769c8be148cf0c4713bfb50'),
+              ('chunk1', chunk1, 12000, 'c806be40eda95793a0856fcdb04b2644ee1647979a6ad86a525cbbc4f5a8fe9e'),
+              ('chunk2', chunk2, 12000, '5fb14e86129a6eb814c6bd48ef8f0236c8d406422d1113cb5b6bc3b3c543f2f6'),
+              ('chunk3', chunk3, 9560, 'cb1153fb92c0f9a68fb17a6692d1aefb8dbcfed1c3800d873e81fcaaad1f3799'),
           ]
-          parts = []
-          for i, (exp_len, exp_hash) in enumerate(expected):
-              part = ''.join(Path(f'assets/flagship-clean-{i:02d}.txt').read_text().split())
+          for name, part, exp_len, exp_hash in checks:
               digest = hashlib.sha256(part.encode()).hexdigest()
-              print(f'chunk {i}: len={len(part)} sha256={digest}')
+              print(f'{name}: len={len(part)} sha256={digest}')
               if len(part) != exp_len or digest != exp_hash:
-                  raise SystemExit(f'chunk {i} does not match approved source')
-              parts.append(part)
-          encoded = ''.join(parts)
-          print('combined:', len(encoded), hashlib.sha256(encoded.encode()).hexdigest())
-          if hashlib.sha256(encoded.encode()).hexdigest() != '8c00f71ae52dbabee78834824315632f69823ffef66caa257f3618ed27054b95':
+                  raise SystemExit(f'{name} does not match approved source')
+
+          encoded = chunk0 + chunk1 + chunk2 + chunk3
+          combined_hash = hashlib.sha256(encoded.encode()).hexdigest()
+          print('combined:', len(encoded), combined_hash)
+          if len(encoded) != 45560 or combined_hash != '8c00f71ae52dbabee78834824315632f69823ffef66caa257f3618ed27054b95':
               raise SystemExit('combined Base64 does not match approved atlas')
+
           data = base64.b64decode(encoded)
           if not data.startswith(b'\xff\xd8') or not data.endswith(b'\xff\xd9'):
               raise SystemExit('decoded JPEG framing invalid')
@@ -50,6 +65,7 @@ jobs:
       - name: Verify real atlas dimensions
         run: |
           file assets/flagship-approved-rebuilt.jpg
+          test -s assets/flagship-approved-rebuilt.jpg
           file assets/flagship-approved-rebuilt.jpg | grep -qi 'JPEG image data'
           file assets/flagship-approved-rebuilt.jpg | grep -q '400x400'
 
@@ -57,12 +73,13 @@ jobs:
         run: |
           sed -i 's/flagship-approved-rebuilt.jpg?v=20260901c/flagship-approved-rebuilt.jpg?v=20260901d/g' flagship-visuals.css
           sed -i 's/flagship-visuals.css?v=20260901c/flagship-visuals.css?v=20260901d/g' flagship.html
+          sed -i 's/flagship-approved-rebuilt.jpg?v=20260901c/flagship-approved-rebuilt.jpg?v=20260901d/g' image-test.html
 
       - name: Commit corrected atlas and page assets
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/flagship-approved-rebuilt.jpg flagship-visuals.css flagship.html
+          git add assets/flagship-approved-rebuilt.jpg flagship-visuals.css flagship.html image-test.html
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
