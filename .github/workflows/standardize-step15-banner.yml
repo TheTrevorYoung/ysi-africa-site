@@ -16,89 +16,87 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Build standardized Step 15 image
+      - name: Rebuild Step 15 header to match Steps 01 and 07
         run: |
           python -m pip install --quiet pillow
           python - <<'PY'
           from PIL import Image, ImageDraw, ImageFont
-          from pathlib import Path
           import subprocess
+          from pathlib import Path
 
-          atlas_path = Path('assets/flagship-hq.webp')
-          atlas = Image.open(atlas_path).convert('RGB')
+          atlas = Image.open('assets/flagship-hq.webp').convert('RGB')
           w, h = atlas.size
           assert w == h and w % 4 == 0, f'Unexpected atlas size: {atlas.size}'
-
           cell = w // 4
-          scale = cell / 800.0
-          S = lambda v: max(1, round(v * scale))
 
-          step11 = atlas.crop((2*cell, 2*cell, 3*cell, 3*cell))
-          step15 = atlas.crop((2*cell, 3*cell, 3*cell, 4*cell))
+          # Step 07 is the locked visual reference for header proportions / branding.
+          step07 = atlas.crop((2*cell, 1*cell, 3*cell, 2*cell))
 
-          # Match the locked Step 11 header proportions used across the standardized series.
-          header_h = S(136)
-          header = step11.crop((0, 0, cell, header_h)).copy()
-          d = ImageDraw.Draw(header)
-          d.rectangle((0, 0, S(590), header_h-S(3)), fill='white')
+          # Use the currently displayed Step 15 scene so the city/network picture itself stays unchanged.
+          current15 = Image.open('assets/step15-standardized.webp').convert('RGB')
+          if current15.size != (cell, cell):
+              current15 = current15.resize((cell, cell), Image.Resampling.LANCZOS)
 
-          def font_path(pattern):
-              p = subprocess.check_output(['fc-match', '-f', '%{file}', pattern], text=True).strip()
-              if not p:
-                  raise RuntimeError(f'Font not found: {pattern}')
-              return p
+          def fp(pattern):
+              return subprocess.check_output(['fc-match','-f','%{file}',pattern], text=True).strip()
 
-          bold = font_path('Liberation Sans Narrow:style=Bold')
-          regular = font_path('Liberation Sans Narrow:style=Regular')
-          green = (0, 69, 42)
-          gray = (78, 84, 82)
+          bold = fp('Arimo:style=Bold')
+          regular = fp('Arimo:style=Regular')
+          green = (5, 90, 52)
+          gray = (70, 72, 72)
 
-          d.text((S(20), S(-6)), '15', font=ImageFont.truetype(bold, S(104)), fill=green)
-          d.rectangle((S(120), S(10), S(123), S(120)), fill=green)
-          d.text((S(143), S(17)), 'REPLICATE THE UNIT', font=ImageFont.truetype(bold, S(44)), fill=green)
-          d.multiline_text(
-              (S(143), S(70)),
-              'Unit 01 informs a better Unit 02 and a\nstandardized Unit 03.',
-              font=ImageFont.truetype(regular, S(22)),
-              fill=gray,
-              spacing=S(4),
-          )
-
-          # Keep the approved city/network scene unchanged in substance; only normalize
-          # its top-banner depth to the standardized series.
-          scene = step15.crop((0, S(181), cell, cell))
-          scene = scene.resize((cell, cell-header_h), Image.Resampling.LANCZOS)
+          # Same proportions as the standardized 01 / 07 banner.
+          header_h = round(cell * 0.234375)
           out = Image.new('RGB', (cell, cell), 'white')
-          out.paste(header, (0, 0))
-          out.paste(scene, (0, header_h))
-          out.save('assets/step15-standardized.webp', 'WEBP', quality=94, method=6)
-          print('Created', Image.open('assets/step15-standardized.webp').size)
-          PY
-      - name: Point Step 15 banner and temporary Step 16 visual to standardized image
-        run: |
-          cat >> flagship-visuals.css <<'CSS'
+          d = ImageDraw.Draw(out)
 
-          /* Standardized Step 15 banner — same header system as the locked visual series. */
-          .network-canvas,
-          .step-thumb.step-15,
-          .step-thumb.step-16,
-          .detail-visual.step-15{
-            background-image:url("assets/step15-standardized.webp?v=20260901std15");
-            background-size:cover;
-            background-position:center;
-          }
-          CSS
+          # Number and divider.
+          d.text((round(cell*0.025), round(cell*0.025)), '15',
+                 font=ImageFont.truetype(bold, round(cell*0.115)), fill=green)
+          xdiv = round(cell*0.179)
+          d.rectangle((xdiv, round(cell*0.020), xdiv+2, round(cell*0.184)), fill=green)
+
+          # Title and subtitle. Title is reduced only enough to preserve the exact 01/07 layout spacing.
+          xt = round(cell*0.198)
+          d.text((xt, round(cell*0.033)), 'REPLICATE THE UNIT',
+                 font=ImageFont.truetype(bold, round(cell*0.045)), fill=green)
+          d.multiline_text((xt, round(cell*0.102)),
+                 'Unit 01 informs a better Unit 02 and a\nstandardized Unit 03.',
+                 font=ImageFont.truetype(regular, round(cell*0.023)), fill=gray,
+                 spacing=round(cell*0.006))
+
+          # Preserve the exact YSI AFRICA brand treatment from Step 07.
+          bx0, by0 = round(cell*0.678), round(cell*0.018)
+          bx1, by1 = round(cell*0.988), round(cell*0.112)
+          brand = step07.crop((bx0, by0, bx1, by1))
+          out.paste(brand, (bx0, by0))
+
+          # Preserve the existing city/network image below the banner.
+          scene = current15.crop((0, header_h, cell, cell))
+          out.paste(scene, (0, header_h))
+
+          out.save('assets/step15-standardized.webp', 'WEBP', quality=96, method=6)
+          print('Created corrected Step 15:', out.size)
+          PY
+      - name: Cache-bust corrected Step 15 only
+        run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('flagship.html')
-          s=p.read_text()
-          s=s.replace('flagship-visuals.css?v=20260901d','flagship-visuals.css?v=20260901e')
-          p.write_text(s)
+          css = Path('flagship-visuals.css')
+          s = css.read_text()
+          s = s.replace('assets/step15-standardized.webp?v=20260901std15',
+                        'assets/step15-standardized.webp?v=20260901std15b')
+          css.write_text(s)
+
+          html = Path('flagship.html')
+          h = html.read_text()
+          h = h.replace('flagship-visuals.css?v=20260901e', 'flagship-visuals.css?v=20260901f')
+          html.write_text(h)
           PY
-      - name: Commit standardized banner
+      - name: Commit corrected Step 15
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/step15-standardized.webp flagship-visuals.css flagship.html
-          git commit -m "Standardize Step 15 image banner"
+          git commit -m "Match Step 15 banner to standardized series"
           git push
