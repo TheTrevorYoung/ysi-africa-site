@@ -1,0 +1,42 @@
+name: Inspect flagship image assets
+
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-flagship-assets.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect candidate images
+        run: |
+          set -x
+          for f in assets/flagship-visual.jpg assets/flagship-approved-real.jpg assets/flagship-approved-rebuilt.jpg; do
+            echo "==== $f ===="
+            wc -c "$f" || true
+            file "$f" || true
+            head -c 32 "$f" | od -An -tx1 || true
+            python - "$f" <<'PY'
+          import sys, base64
+          from pathlib import Path
+          p=Path(sys.argv[1]); data=p.read_bytes()
+          print('starts', data[:20])
+          try:
+              from PIL import Image
+              im=Image.open(p); print('PIL direct', im.size, im.format); im.verify()
+          except Exception as e:
+              print('PIL direct failed', repr(e))
+          try:
+              txt=''.join(data.decode('ascii').split())
+              dec=base64.b64decode(txt, validate=False)
+              q=p.with_suffix('.decoded.jpg'); q.write_bytes(dec)
+              print('decoded bytes', len(dec), 'starts', dec[:10])
+              from PIL import Image
+              im=Image.open(q); print('PIL decoded', im.size, im.format); im.verify()
+          except Exception as e:
+              print('base64 decode path failed', repr(e))
+          PY
+          done
