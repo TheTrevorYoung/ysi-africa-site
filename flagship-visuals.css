@@ -12,3 +12,29 @@
   background-size:cover;
   background-position:center;
 }
+
+/* Standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
+.step-thumb.step-06,
+.detail-visual.step-06{
+  background-image:url("assets/step06-standardized.webp?v=20260901std4a");
+  background-size:cover;
+  background-position:center;
+}
+.step-thumb.step-10,
+.detail-visual.step-10{
+  background-image:url("assets/step10-standardized.webp?v=20260901std4a");
+  background-size:cover;
+  background-position:center;
+}
+.step-thumb.step-12,
+.detail-visual.step-12{
+  background-image:url("assets/step12-standardized.webp?v=20260901std4a");
+  background-size:cover;
+  background-position:center;
+}
+.step-thumb.step-14,
+.detail-visual.step-14{
+  background-image:url("assets/step14-standardized.webp?v=20260901std4a");
+  background-size:cover;
+  background-position:center;
+}
