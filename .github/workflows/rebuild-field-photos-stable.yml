@@ -1,4 +1,4 @@
-name: Rebuild documentary photos as stable assets
+name: Apply stable field photo atlas and image QA
 
 on:
   push:
@@ -10,106 +10,138 @@ permissions:
   contents: write
 
 jobs:
-  rebuild-field-photos:
+  apply-and-verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Rebuild valid documentary WebP assets from preserved source
+      - name: Verify stable field atlas
         run: |
           python -m pip install --quiet pillow
-          git show 57eeaaf328280d68ed8c5c4ff7f49d0551ef19c1:assets/field-evidence-grid.webp > /tmp/field-evidence-source.jpg
           python - <<'PY'
           from pathlib import Path
-          from PIL import Image, ImageOps
-
-          src = Path('/tmp/field-evidence-source.jpg')
-          im = Image.open(src)
-          im.load()
-          print('Recovered source:', im.format, im.size)
-          if im.format != 'JPEG':
-              raise SystemExit(f'Expected preserved JPEG source, got {im.format}')
-          im = im.convert('RGB')
-
-          im.save('assets/field-evidence-grid.webp', 'WEBP', quality=90, method=6)
-
-          w, h = im.size
-          panel = im.crop((0, 0, max(1, w // 2), max(1, h // 2)))
-          hero = ImageOps.fit(panel, (1200, 800), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
-          hero.save('assets/field-hero.webp', 'WEBP', quality=91, method=6)
-
-          for name in ['assets/field-evidence-grid.webp', 'assets/field-hero.webp']:
-              p = Path(name)
-              d = p.read_bytes()
-              assert d[:4] == b'RIFF' and d[8:12] == b'WEBP', f'{name} is not real WebP'
-              test = Image.open(p)
-              test.verify()
-              print(name, 'OK', p.stat().st_size, 'bytes')
+          from PIL import Image
+          p = Path('assets/field-atlas.webp')
+          if not p.exists():
+              raise SystemExit('assets/field-atlas.webp is missing')
+          d = p.read_bytes()
+          if not (d[:4] == b'RIFF' and d[8:12] == b'WEBP'):
+              raise SystemExit('field-atlas.webp is not a genuine WebP file')
+          im = Image.open(p)
+          print('Field atlas:', im.format, im.size, p.stat().st_size, 'bytes')
+          im.verify()
           PY
 
-      - name: Restore documentary photography across homepage and flagship
+      - name: Put documentary photography on homepage and flagship
         run: |
           python - <<'PY'
           from pathlib import Path
 
+          version = '20260901atlas1'
+          atlas = f'assets/field-atlas.webp?v={version}'
+
+          # Homepage: use the top-left atlas panel as the hero, then show the full atlas as field evidence.
           p = Path('index.html')
           s = p.read_text()
-          s = s.replace('https://ysiafrica.org/assets/ysi-hero.jpg', 'https://ysiafrica.org/assets/field-hero.webp?v=20260901stable1')
-          s = s.replace('<img src="assets/ysi-hero.jpg" alt="Illustrative view of a coastal cleanup in Sierra Leone with volunteers shown mostly from behind">', '<img src="assets/field-hero.webp?v=20260901stable1" alt="Documentary field cleanup work at Lumley Beach in Freetown" fetchpriority="high">')
-          s = s.replace("<figcaption>Illustrative visual representing YSI's environmental mission. Documentary project photography will be added as the evidence library is completed.</figcaption>", '<figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown • April 2026.</figcaption>')
+          s = s.replace('https://ysiafrica.org/assets/ysi-hero.jpg', f'https://ysiafrica.org/{atlas}')
+          old_figure = '''      <figure class="hero-photo">
+        <img src="assets/ysi-hero.jpg" alt="Illustrative view of a coastal cleanup in Sierra Leone with volunteers shown mostly from behind">
+        <figcaption>Illustrative visual representing YSI's environmental mission. Documentary project photography will be added as the evidence library is completed.</figcaption>
+      </figure>'''
+          new_figure = f'''      <figure class="hero-photo">
+        <div class="field-hero-image" role="img" aria-label="Documentary field cleanup work at Lumley Beach in Freetown"></div>
+        <figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown • April 2026.</figcaption>
+      </figure>'''
+          s = s.replace(old_figure, new_figure)
 
-          home_evidence = "\n".join([
-              '  <section class="section field-evidence" aria-labelledby="field-evidence-title">',
-              '    <div class="wrap field-evidence-grid">',
-              '      <div class="field-evidence-copy">',
-              '        <p class="eyebrow">Field evidence</p>',
-              '        <h2 id="field-evidence-title">The work starts in the field.</h2>',
-              "        <p class=\"lede\">YSI's longer-term systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p>",
-              '        <p>These documentary images from Lumley Beach show the practical conditions behind the strategy: mixed coastal waste, manual sorting, recoverable plastics and the visible result of sustained cleanup work.</p>',
-              '        <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach • Freetown • April 2026</span></div>',
-              '      </div>',
-              '      <figure class="field-mosaic">',
-              '        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Four documentary images from Lumley Beach showing cleanup, manual sorting, recovered plastic bottles and a cleaned shoreline">',
-              '        <figcaption>Cleanup, material handling, recovered plastics and restored shoreline conditions documented during Lumley Beach field work.</figcaption>',
-              '      </figure>',
-              '    </div>',
-              '  </section>',
-              ''
-          ])
-          marker = '  <section class="section flagship-home" aria-labelledby="flagship-home-title">'
-          if 'id="field-evidence-title"' not in s:
-              s = s.replace(marker, home_evidence + '\n' + marker)
+          # Remove any stale previous field-evidence section before inserting the current one.
+          start = s.find('  <section class="section field-evidence" aria-labelledby="field-evidence-title">')
+          end_marker = '  <section class="section flagship-home" aria-labelledby="flagship-home-title">'
+          if start != -1:
+              end = s.find(end_marker, start)
+              if end != -1:
+                  s = s[:start] + s[end:]
+
+          home_evidence = f'''  <section class="section field-evidence" aria-labelledby="field-evidence-title">
+    <div class="wrap field-evidence-grid">
+      <div class="field-evidence-copy">
+        <p class="eyebrow">Field evidence</p>
+        <h2 id="field-evidence-title">The work starts in the field.</h2>
+        <p class="lede">YSI's longer-term systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p>
+        <p>These documentary images from Lumley Beach show the practical conditions behind the strategy: active cleanup, mixed coastal waste, recovered plastics and the visible result of sustained cleanup work.</p>
+        <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach • Freetown • April 2026</span></div>
+      </div>
+      <figure class="field-mosaic">
+        <img src="{atlas}" loading="lazy" alt="Four documentary images from Lumley Beach showing active cleanup, mixed waste, recovered plastic bottles and a cleaned shoreline">
+        <figcaption>Cleanup, waste conditions, recovered plastics and restored shoreline conditions documented during Lumley Beach field work.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+'''
+          marker = end_marker
+          if marker not in s:
+              raise SystemExit('Homepage insertion marker not found')
+          s = s.replace(marker, home_evidence + marker, 1)
           p.write_text(s)
 
+          # Flagship: replace any stale documentary block with the verified atlas.
           p = Path('flagship.html')
           s = p.read_text()
-          flagship_evidence = "\n".join([
-              '  <section class="section field-evidence flagship-field-evidence" aria-labelledby="flagship-field-title">',
-              '    <div class="wrap field-evidence-grid">',
-              '      <div class="field-evidence-copy">',
-              '        <p class="eyebrow">Field experience behind the concept</p>',
-              '        <h2 id="flagship-field-title">Cleanup exposes the waste stream. Measurement turns it into evidence.</h2>',
-              "        <p class=\"lede\">YSI's Lumley Beach field work provides direct experience with mixed coastal waste, cleanup logistics, manual handling and material-recovery challenges.</p>",
-              '        <p>The flagship concept is designed to move beyond cleanup alone by measuring what arrives, characterizing it, testing realistic recovery pathways and documenting the operating evidence needed before replication.</p>',
-              '        <div class="field-proof"><strong>Actual field photography</strong><span>The 16-step graphics below remain concept illustrations.</span></div>',
-              '      </div>',
-              '      <figure class="field-mosaic">',
-              '        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Documentary images from Lumley Beach field work showing cleanup, sorting, recovered plastic bottles and a cleaned shoreline">',
-              '        <figcaption>Documentary field images from Lumley Beach, Freetown • April 2026.</figcaption>',
-              '      </figure>',
-              '    </div>',
-              '  </section>',
-              ''
-          ])
-          marker = '  <section class="section process-section">'
-          if 'id="flagship-field-title"' not in s:
-              s = s.replace(marker, flagship_evidence + '\n' + marker)
+          start = s.find('  <section class="section field-evidence flagship-field-evidence"')
+          process_marker = '  <section class="section process-section">'
+          if start != -1:
+              end = s.find(process_marker, start)
+              if end != -1:
+                  s = s[:start] + s[end:]
+
+          flagship_evidence = f'''  <section class="section field-evidence flagship-field-evidence" aria-labelledby="flagship-field-title">
+    <div class="wrap field-evidence-grid">
+      <div class="field-evidence-copy">
+        <p class="eyebrow">Field experience behind the concept</p>
+        <h2 id="flagship-field-title">Cleanup exposes the waste stream. Measurement turns it into evidence.</h2>
+        <p class="lede">YSI's Lumley Beach field work provides direct experience with mixed coastal waste, cleanup logistics, manual handling and material-recovery challenges.</p>
+        <p>The flagship concept is designed to move beyond cleanup alone by measuring what arrives, characterizing it, testing realistic recovery pathways and documenting the operating evidence needed before replication.</p>
+        <div class="field-proof"><strong>Actual field photography</strong><span>The 16-step graphics below remain concept illustrations.</span></div>
+      </div>
+      <figure class="field-mosaic">
+        <img src="{atlas}" loading="lazy" alt="Documentary images from Lumley Beach field work showing cleanup, mixed waste, recovered plastic bottles and a cleaned shoreline">
+        <figcaption>Documentary field images from Lumley Beach, Freetown • April 2026.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+'''
+          if process_marker not in s:
+              raise SystemExit('Flagship insertion marker not found')
+          s = s.replace(process_marker, flagship_evidence + process_marker, 1)
+          p.write_text(s)
+
+          # Atlas crop for homepage hero: same baked-asset/background approach used by the 16-step visuals.
+          p = Path('styles.css')
+          s = p.read_text()
+          marker = '/* FIELD PHOTO ATLAS — stable baked asset */'
+          block = f'''
+
+{marker}
+.field-hero-image{{
+  width:100%;
+  aspect-ratio:1.44/1;
+  background-image:url("{atlas}");
+  background-repeat:no-repeat;
+  background-size:200% 200%;
+  background-position:left top;
+}}
+.field-mosaic img{{aspect-ratio:auto;object-fit:contain;}}
+'''
+          if marker not in s:
+              s += block
           p.write_text(s)
           PY
 
-      - name: Site-wide image integrity check
+      - name: Site-wide image integrity QA
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -117,13 +149,14 @@ jobs:
           import re
 
           refs = set()
-          html_pat = re.compile(r'(?:src|content)=["\'\'](?:https://ysiafrica\.org/)?(assets/[^"\'\']+)["\'\']')
-          css_pat = re.compile(r'url\(["\'\']?(assets/[^)"\'\']+)["\'\']?\)')
           for p in list(Path('.').glob('*.html')) + list(Path('.').glob('*.css')):
               text = p.read_text(errors='ignore')
-              for pat in (html_pat, css_pat):
-                  for m in pat.finditer(text):
-                      refs.add(m.group(1).split('?')[0].split('#')[0])
+              # HTML img/OG refs.
+              for m in re.finditer(r'(?:src|content)=["\'](?:https://ysiafrica\.org/)?(assets/[^"\']+)["\']', text):
+                  refs.add(m.group(1).split('?')[0].split('#')[0])
+              # CSS url() refs.
+              for m in re.finditer(r'url\(["\']?(assets/[^)"\']+)["\']?\)', text):
+                  refs.add(m.group(1).split('?')[0].split('#')[0])
 
           failures = []
           checked = []
@@ -133,12 +166,13 @@ jobs:
               if not path.exists():
                   failures.append(f'MISSING {ref}')
                   continue
-              if path.suffix.lower() in expected_formats:
+              suffix = path.suffix.lower()
+              if suffix in expected_formats:
                   try:
                       im = Image.open(path)
                       fmt = im.format
                       im.verify()
-                      expected = expected_formats[path.suffix.lower()]
+                      expected = expected_formats[suffix]
                       if fmt != expected:
                           failures.append(f'FORMAT MISMATCH {ref}: extension expects {expected}, bytes are {fmt}')
                       else:
@@ -146,22 +180,32 @@ jobs:
                   except Exception as e:
                       failures.append(f'BROKEN {ref}: {e}')
 
+          for p in Path('.').glob('*.html'):
+              t = p.read_text(errors='ignore')
+              for stale in ('field-hero.webp','field-evidence-grid.webp'):
+                  if stale in t:
+                      failures.append(f'STALE BROKEN REFERENCE {p}: {stale}')
+
           print('\n'.join(checked))
+          print(f'Checked {len(refs)} unique asset references; decoded {len(checked)} raster images.')
           if failures:
               print('\nIMAGE QA FAILURES:')
               print('\n'.join(failures))
               raise SystemExit(1)
-          print(f'IMAGE QA PASSED: {len(checked)} referenced raster assets verified.')
+          print('SITE-WIDE IMAGE QA PASSED')
           PY
 
-      - name: Commit stable documentary assets and website update
+      - name: Commit verified site update and remove temporary repair workflow
         run: |
+          rm -f assets/field-hero.webp assets/field-evidence-grid.webp
+          rm -f .github/workflows/rebuild-field-photos-stable.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/field-hero.webp assets/field-evidence-grid.webp index.html flagship.html
+          git add -A
+          git diff --cached --stat
           if git diff --cached --quiet; then
             echo "No changes needed"
           else
-            git commit -m "Rebuild documentary photos as verified stable assets"
+            git commit -m "Use stable field photo atlas and verify website images"
             git push
           fi
