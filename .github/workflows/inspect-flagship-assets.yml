@@ -6,12 +6,17 @@ on:
       - '.github/workflows/inspect-flagship-assets.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Decode and inspect larger flagship visual
+        with:
+          fetch-depth: 0
+      - name: Decode larger flagship visual
         run: |
           python - <<'PY'
           import base64
@@ -22,11 +27,16 @@ jobs:
           out=Path('assets/flagship-visual-decoded.jpg')
           out.write_bytes(data)
           print('decoded bytes:', len(data))
-          print('jpeg start/end:', data[:2], data[-2:])
           PY
-          echo 'FILE:'
           file assets/flagship-visual-decoded.jpg
-          echo 'IDENTIFY:'
-          identify assets/flagship-visual-decoded.jpg || true
-          echo 'SHA256:'
-          sha256sum assets/flagship-visual-decoded.jpg
+      - name: Commit preview only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/flagship-visual-decoded.jpg
+          if git diff --cached --quiet; then
+            echo "No preview change"
+          else
+            git commit -m "Add decoded flagship visual preview"
+            git push
+          fi
