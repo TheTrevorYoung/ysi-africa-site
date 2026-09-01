@@ -26,17 +26,21 @@ jobs:
 
           atlas_path = Path('assets/flagship-hq.webp')
           atlas = Image.open(atlas_path).convert('RGB')
-          assert atlas.size == (3200, 3200), f'Unexpected atlas size: {atlas.size}'
+          w, h = atlas.size
+          assert w == h and w % 4 == 0, f'Unexpected atlas size: {atlas.size}'
 
-          cell = 800
+          cell = w // 4
+          scale = cell / 800.0
+          S = lambda v: max(1, round(v * scale))
+
           step11 = atlas.crop((2*cell, 2*cell, 3*cell, 3*cell))
           step15 = atlas.crop((2*cell, 3*cell, 3*cell, 4*cell))
 
           # Match the locked Step 11 header proportions used across the standardized series.
-          header_h = 136
+          header_h = S(136)
           header = step11.crop((0, 0, cell, header_h)).copy()
           d = ImageDraw.Draw(header)
-          d.rectangle((0, 0, 590, header_h-3), fill='white')
+          d.rectangle((0, 0, S(590), header_h-S(3)), fill='white')
 
           def font_path(pattern):
               p = subprocess.check_output(['fc-match', '-f', '%{file}', pattern], text=True).strip()
@@ -49,20 +53,20 @@ jobs:
           green = (0, 69, 42)
           gray = (78, 84, 82)
 
-          d.text((20, -6), '15', font=ImageFont.truetype(bold, 104), fill=green)
-          d.rectangle((120, 10, 123, 120), fill=green)
-          d.text((143, 17), 'REPLICATE THE UNIT', font=ImageFont.truetype(bold, 44), fill=green)
+          d.text((S(20), S(-6)), '15', font=ImageFont.truetype(bold, S(104)), fill=green)
+          d.rectangle((S(120), S(10), S(123), S(120)), fill=green)
+          d.text((S(143), S(17)), 'REPLICATE THE UNIT', font=ImageFont.truetype(bold, S(44)), fill=green)
           d.multiline_text(
-              (143, 70),
+              (S(143), S(70)),
               'Unit 01 informs a better Unit 02 and a\nstandardized Unit 03.',
-              font=ImageFont.truetype(regular, 22),
+              font=ImageFont.truetype(regular, S(22)),
               fill=gray,
-              spacing=4,
+              spacing=S(4),
           )
 
           # Keep the approved city/network scene unchanged in substance; only normalize
           # its top-banner depth to the standardized series.
-          scene = step15.crop((0, 181, cell, cell))
+          scene = step15.crop((0, S(181), cell, cell))
           scene = scene.resize((cell, cell-header_h), Image.Resampling.LANCZOS)
           out = Image.new('RGB', (cell, cell), 'white')
           out.paste(header, (0, 0))
