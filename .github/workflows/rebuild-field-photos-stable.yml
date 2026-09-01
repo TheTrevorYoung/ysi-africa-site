@@ -19,6 +19,7 @@ jobs:
 
       - name: Rebuild valid documentary WebP assets from preserved source
         run: |
+          python -m pip install --quiet pillow
           git show 57eeaaf328280d68ed8c5c4ff7f49d0551ef19c1:assets/field-evidence-grid.webp > /tmp/field-evidence-source.jpg
           python - <<'PY'
           from pathlib import Path
@@ -32,16 +33,13 @@ jobs:
               raise SystemExit(f'Expected preserved JPEG source, got {im.format}')
           im = im.convert('RGB')
 
-          # Stable full documentary mosaic: real WebP bytes with a .webp extension.
           im.save('assets/field-evidence-grid.webp', 'WEBP', quality=90, method=6)
 
-          # Use one documentary panel from the mosaic as the homepage hero.
           w, h = im.size
           panel = im.crop((0, 0, max(1, w // 2), max(1, h // 2)))
           hero = ImageOps.fit(panel, (1200, 800), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
           hero.save('assets/field-hero.webp', 'WEBP', quality=91, method=6)
 
-          # Verify both outputs are genuine WebP files and decode cleanly.
           for name in ['assets/field-evidence-grid.webp', 'assets/field-hero.webp']:
               p = Path(name)
               d = p.read_bytes()
@@ -56,57 +54,55 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          # Homepage hero + field evidence section.
           p = Path('index.html')
           s = p.read_text()
           s = s.replace('https://ysiafrica.org/assets/ysi-hero.jpg', 'https://ysiafrica.org/assets/field-hero.webp?v=20260901stable1')
-          s = s.replace('<img src="assets/ysi-hero.jpg" alt="Illustrative view of a coastal cleanup in Sierra Leone with volunteers shown mostly from behind">',
-                        '<img src="assets/field-hero.webp?v=20260901stable1" alt="Documentary field cleanup work at Lumley Beach in Freetown" fetchpriority="high">')
-          s = s.replace("<figcaption>Illustrative visual representing YSI's environmental mission. Documentary project photography will be added as the evidence library is completed.</figcaption>",
-                        '<figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown • April 2026.</figcaption>')
+          s = s.replace('<img src="assets/ysi-hero.jpg" alt="Illustrative view of a coastal cleanup in Sierra Leone with volunteers shown mostly from behind">', '<img src="assets/field-hero.webp?v=20260901stable1" alt="Documentary field cleanup work at Lumley Beach in Freetown" fetchpriority="high">')
+          s = s.replace("<figcaption>Illustrative visual representing YSI's environmental mission. Documentary project photography will be added as the evidence library is completed.</figcaption>", '<figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown • April 2026.</figcaption>')
 
-          home_evidence = '''\
-  <section class="section field-evidence" aria-labelledby="field-evidence-title">\
-    <div class="wrap field-evidence-grid">\
-      <div class="field-evidence-copy">\
-        <p class="eyebrow">Field evidence</p>\
-        <h2 id="field-evidence-title">The work starts in the field.</h2>\
-        <p class="lede">YSI's longer-term systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p>\
-        <p>These documentary images from Lumley Beach show the practical conditions behind the strategy: mixed coastal waste, manual sorting, recoverable plastics and the visible result of sustained cleanup work.</p>\
-        <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach • Freetown • April 2026</span></div>\
-      </div>\
-      <figure class="field-mosaic">\
-        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Four documentary images from Lumley Beach showing cleanup, manual sorting, recovered plastic bottles and a cleaned shoreline">\
-        <figcaption>Cleanup, material handling, recovered plastics and restored shoreline conditions documented during Lumley Beach field work.</figcaption>\
-      </figure>\
-    </div>\
-  </section>\
-'''
+          home_evidence = "\n".join([
+              '  <section class="section field-evidence" aria-labelledby="field-evidence-title">',
+              '    <div class="wrap field-evidence-grid">',
+              '      <div class="field-evidence-copy">',
+              '        <p class="eyebrow">Field evidence</p>',
+              '        <h2 id="field-evidence-title">The work starts in the field.</h2>',
+              "        <p class=\"lede\">YSI's longer-term systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p>",
+              '        <p>These documentary images from Lumley Beach show the practical conditions behind the strategy: mixed coastal waste, manual sorting, recoverable plastics and the visible result of sustained cleanup work.</p>',
+              '        <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach • Freetown • April 2026</span></div>',
+              '      </div>',
+              '      <figure class="field-mosaic">',
+              '        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Four documentary images from Lumley Beach showing cleanup, manual sorting, recovered plastic bottles and a cleaned shoreline">',
+              '        <figcaption>Cleanup, material handling, recovered plastics and restored shoreline conditions documented during Lumley Beach field work.</figcaption>',
+              '      </figure>',
+              '    </div>',
+              '  </section>',
+              ''
+          ])
           marker = '  <section class="section flagship-home" aria-labelledby="flagship-home-title">'
           if 'id="field-evidence-title"' not in s:
               s = s.replace(marker, home_evidence + '\n' + marker)
           p.write_text(s)
 
-          # Flagship documentary evidence section.
           p = Path('flagship.html')
           s = p.read_text()
-          flagship_evidence = '''\
-  <section class="section field-evidence flagship-field-evidence" aria-labelledby="flagship-field-title">\
-    <div class="wrap field-evidence-grid">\
-      <div class="field-evidence-copy">\
-        <p class="eyebrow">Field experience behind the concept</p>\
-        <h2 id="flagship-field-title">Cleanup exposes the waste stream. Measurement turns it into evidence.</h2>\
-        <p class="lede">YSI's Lumley Beach field work provides direct experience with mixed coastal waste, cleanup logistics, manual handling and material-recovery challenges.</p>\
-        <p>The flagship concept is designed to move beyond cleanup alone by measuring what arrives, characterizing it, testing realistic recovery pathways and documenting the operating evidence needed before replication.</p>\
-        <div class="field-proof"><strong>Actual field photography</strong><span>The 16-step graphics below remain concept illustrations.</span></div>\
-      </div>\
-      <figure class="field-mosaic">\
-        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Documentary images from Lumley Beach field work showing cleanup, sorting, recovered plastic bottles and a cleaned shoreline">\
-        <figcaption>Documentary field images from Lumley Beach, Freetown • April 2026.</figcaption>\
-      </figure>\
-    </div>\
-  </section>\
-'''
+          flagship_evidence = "\n".join([
+              '  <section class="section field-evidence flagship-field-evidence" aria-labelledby="flagship-field-title">',
+              '    <div class="wrap field-evidence-grid">',
+              '      <div class="field-evidence-copy">',
+              '        <p class="eyebrow">Field experience behind the concept</p>',
+              '        <h2 id="flagship-field-title">Cleanup exposes the waste stream. Measurement turns it into evidence.</h2>',
+              "        <p class=\"lede\">YSI's Lumley Beach field work provides direct experience with mixed coastal waste, cleanup logistics, manual handling and material-recovery challenges.</p>",
+              '        <p>The flagship concept is designed to move beyond cleanup alone by measuring what arrives, characterizing it, testing realistic recovery pathways and documenting the operating evidence needed before replication.</p>',
+              '        <div class="field-proof"><strong>Actual field photography</strong><span>The 16-step graphics below remain concept illustrations.</span></div>',
+              '      </div>',
+              '      <figure class="field-mosaic">',
+              '        <img src="assets/field-evidence-grid.webp?v=20260901stable1" loading="lazy" alt="Documentary images from Lumley Beach field work showing cleanup, sorting, recovered plastic bottles and a cleaned shoreline">',
+              '        <figcaption>Documentary field images from Lumley Beach, Freetown • April 2026.</figcaption>',
+              '      </figure>',
+              '    </div>',
+              '  </section>',
+              ''
+          ])
           marker = '  <section class="section process-section">'
           if 'id="flagship-field-title"' not in s:
               s = s.replace(marker, flagship_evidence + '\n' + marker)
@@ -121,29 +117,28 @@ jobs:
           import re
 
           refs = set()
-          patterns = [
-              re.compile(r'(?:src|content)=["\'](?:https://ysiafrica\.org/)?(assets/[^"\']+)["\']'),
-              re.compile(r'url\(["\']?(assets/[^)"\']+)["\']?\)')
-          ]
+          html_pat = re.compile(r'(?:src|content)=["\'\'](?:https://ysiafrica\.org/)?(assets/[^"\'\']+)["\'\']')
+          css_pat = re.compile(r'url\(["\'\']?(assets/[^)"\'\']+)["\'\']?\)')
           for p in list(Path('.').glob('*.html')) + list(Path('.').glob('*.css')):
               text = p.read_text(errors='ignore')
-              for pat in patterns:
+              for pat in (html_pat, css_pat):
                   for m in pat.finditer(text):
                       refs.add(m.group(1).split('?')[0].split('#')[0])
 
           failures = []
           checked = []
+          expected_formats = {'.jpg':'JPEG','.jpeg':'JPEG','.png':'PNG','.webp':'WEBP','.gif':'GIF'}
           for ref in sorted(refs):
               path = Path(ref)
               if not path.exists():
                   failures.append(f'MISSING {ref}')
                   continue
-              if path.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif'}:
+              if path.suffix.lower() in expected_formats:
                   try:
                       im = Image.open(path)
                       fmt = im.format
                       im.verify()
-                      expected = {'.jpg':'JPEG','.jpeg':'JPEG','.png':'PNG','.webp':'WEBP','.gif':'GIF'}[path.suffix.lower()]
+                      expected = expected_formats[path.suffix.lower()]
                       if fmt != expected:
                           failures.append(f'FORMAT MISMATCH {ref}: extension expects {expected}, bytes are {fmt}')
                       else:
