@@ -18,17 +18,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode approved atlas
+      - name: Decode clean atlas
         shell: python
         run: |
           import base64
           from pathlib import Path
+          from PIL import Image
 
-          parts = [Path(f"assets/flagship-approved-0{i}.txt").read_text() for i in range(5)]
+          parts = [Path(f"assets/flagship-clean-{i:02d}.txt").read_text() for i in range(7)]
           encoded = ''.join(parts)
           encoded = ''.join(encoded.split())
           encoded += '=' * ((4 - len(encoded) % 4) % 4)
-          data = base64.b64decode(encoded)
+          data = base64.b64decode(encoded, validate=False)
 
           if not data.startswith(b'\xff\xd8'):
               raise SystemExit('Decoded data is not a JPEG')
@@ -37,12 +38,9 @@ jobs:
 
           out = Path('assets/flagship-approved-rebuilt.jpg')
           out.write_bytes(data)
-          print(f'Wrote {len(data)} bytes to {out}')
-
-      - name: Verify image
-        run: |
-          file assets/flagship-approved-rebuilt.jpg
-          test -s assets/flagship-approved-rebuilt.jpg
+          with Image.open(out) as im:
+              im.verify()
+          print(f'Wrote and verified {len(data)} bytes to {out}')
 
       - name: Commit rebuilt image
         run: |
@@ -52,6 +50,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No image change to commit"
           else
-            git commit -m "Rebuild flagship visual as binary JPEG"
+            git commit -m "Rebuild flagship visual as verified binary JPEG"
             git push
           fi
