@@ -1,0 +1,57 @@
+name: Rebuild flagship image
+
+on:
+  push:
+    paths:
+      - '.github/workflows/rebuild-flagship-image.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decode approved atlas
+        shell: python
+        run: |
+          import base64
+          from pathlib import Path
+
+          parts = [Path(f"assets/flagship-approved-0{i}.txt").read_text() for i in range(5)]
+          encoded = ''.join(parts)
+          encoded = ''.join(encoded.split())
+          encoded += '=' * ((4 - len(encoded) % 4) % 4)
+          data = base64.b64decode(encoded)
+
+          if not data.startswith(b'\xff\xd8'):
+              raise SystemExit('Decoded data is not a JPEG')
+          if not data.endswith(b'\xff\xd9'):
+              raise SystemExit('Decoded JPEG is incomplete')
+
+          out = Path('assets/flagship-approved-rebuilt.jpg')
+          out.write_bytes(data)
+          print(f'Wrote {len(data)} bytes to {out}')
+
+      - name: Verify image
+        run: |
+          file assets/flagship-approved-rebuilt.jpg
+          test -s assets/flagship-approved-rebuilt.jpg
+
+      - name: Commit rebuilt image
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/flagship-approved-rebuilt.jpg
+          if git diff --cached --quiet; then
+            echo "No image change to commit"
+          else
+            git commit -m "Rebuild flagship visual as binary JPEG"
+            git push
+          fi
