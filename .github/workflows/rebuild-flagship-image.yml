@@ -18,13 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode clean atlas
+      - name: Decode approved 400px atlas
         shell: python
         run: |
           import base64
           from pathlib import Path
 
-          parts = [Path(f"assets/flagship-clean-{i:02d}.txt").read_text() for i in range(7)]
+          parts = [Path(f"assets/flagship-clean-{i:02d}.txt").read_text() for i in range(4)]
           encoded = ''.join(parts)
           encoded = ''.join(encoded.split())
           encoded += '=' * ((4 - len(encoded) % 4) % 4)
@@ -39,25 +39,26 @@ jobs:
           out.write_bytes(data)
           print(f'Wrote {len(data)} bytes to {out}')
 
-      - name: Verify binary image
+      - name: Verify real atlas dimensions
         run: |
           file assets/flagship-approved-rebuilt.jpg
           test -s assets/flagship-approved-rebuilt.jpg
           file assets/flagship-approved-rebuilt.jpg | grep -qi 'JPEG image data'
+          file assets/flagship-approved-rebuilt.jpg | grep -q '400x400'
 
-      - name: Cache-bust flagship page assets
+      - name: Cache-bust corrected image
         run: |
-          sed -i 's/flagship-visuals.css?v=20260901b/flagship-visuals.css?v=20260901c/g' flagship.html
-          sed -i 's#<script src="script.js"></script>#<script src="script.js?v=20260901c"></script>#g' flagship.html
+          sed -i 's/flagship-approved-rebuilt.jpg?v=20260901c/flagship-approved-rebuilt.jpg?v=20260901d/g' flagship-visuals.css
+          sed -i 's/flagship-visuals.css?v=20260901c/flagship-visuals.css?v=20260901d/g' flagship.html
 
-      - name: Commit rebuilt image and page update
+      - name: Commit corrected atlas and page assets
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/flagship-approved-rebuilt.jpg flagship.html
+          git add assets/flagship-approved-rebuilt.jpg flagship-visuals.css flagship.html
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Deploy verified flagship images and cache bust assets"
+            git commit -m "Deploy corrected 400px flagship atlas"
             git push
           fi
