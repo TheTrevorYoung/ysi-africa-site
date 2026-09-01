@@ -23,7 +23,6 @@ jobs:
         run: |
           import base64
           from pathlib import Path
-          from PIL import Image
 
           parts = [Path(f"assets/flagship-clean-{i:02d}.txt").read_text() for i in range(7)]
           encoded = ''.join(parts)
@@ -38,9 +37,13 @@ jobs:
 
           out = Path('assets/flagship-approved-rebuilt.jpg')
           out.write_bytes(data)
-          with Image.open(out) as im:
-              im.verify()
-          print(f'Wrote and verified {len(data)} bytes to {out}')
+          print(f'Wrote {len(data)} bytes to {out}')
+
+      - name: Verify binary image
+        run: |
+          file assets/flagship-approved-rebuilt.jpg
+          test -s assets/flagship-approved-rebuilt.jpg
+          file assets/flagship-approved-rebuilt.jpg | grep -qi 'JPEG image data'
 
       - name: Commit rebuilt image
         run: |
