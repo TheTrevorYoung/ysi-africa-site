@@ -45,14 +45,19 @@ jobs:
           test -s assets/flagship-approved-rebuilt.jpg
           file assets/flagship-approved-rebuilt.jpg | grep -qi 'JPEG image data'
 
-      - name: Commit rebuilt image
+      - name: Cache-bust flagship page assets
+        run: |
+          sed -i 's/flagship-visuals.css?v=20260901b/flagship-visuals.css?v=20260901c/g' flagship.html
+          sed -i 's#<script src="script.js"></script>#<script src="script.js?v=20260901c"></script>#g' flagship.html
+
+      - name: Commit rebuilt image and page update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/flagship-approved-rebuilt.jpg
+          git add assets/flagship-approved-rebuilt.jpg flagship.html
           if git diff --cached --quiet; then
-            echo "No image change to commit"
+            echo "No changes to commit"
           else
-            git commit -m "Rebuild flagship visual as verified binary JPEG"
+            git commit -m "Deploy verified flagship images and cache bust assets"
             git push
           fi
