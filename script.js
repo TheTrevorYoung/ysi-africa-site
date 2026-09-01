@@ -16,25 +16,35 @@ if (button && nav) {
   }));
 }
 
-// The optimized flagship atlas is currently stored as Base64 text in the
-// repository. Convert that text into a browser-readable data URL at runtime.
-// This keeps the visual gallery working while preserving the lightweight atlas.
+// Load the approved 4x4 flagship atlas assembled from the individual Drive graphics.
+// The encoded atlas is split into small static text parts so GitHub Pages can serve it reliably.
 const flagshipVisualTargets = document.querySelectorAll('.step-thumb, .detail-visual, .network-canvas');
 if (flagshipVisualTargets.length) {
-  fetch('assets/flagship-visual.jpg', { cache: 'no-store' })
-    .then(response => {
-      if (!response.ok) throw new Error(`Flagship visual asset returned ${response.status}`);
+  const atlasParts = [
+    'assets/flagship-approved-00.txt',
+    'assets/flagship-approved-01.txt',
+    'assets/flagship-approved-02.txt',
+    'assets/flagship-approved-03.txt',
+    'assets/flagship-approved-04.txt'
+  ];
+
+  Promise.all(atlasParts.map(url =>
+    fetch(url, { cache: 'no-store' }).then(response => {
+      if (!response.ok) throw new Error(`${url} returned ${response.status}`);
       return response.text();
     })
-    .then(encoded => {
-      const atlas = encoded.trim();
-      if (!atlas.startsWith('/9j/')) throw new Error('Flagship visual atlas is not valid encoded JPEG data');
+  ))
+    .then(parts => {
+      const atlas = parts.join('').replace(/\s+/g, '');
+      if (!atlas.startsWith('/9j/') || !atlas.endsWith('==')) {
+        throw new Error('Approved flagship atlas data is incomplete');
+      }
       const imageUrl = `url("data:image/jpeg;base64,${atlas}")`;
       flagshipVisualTargets.forEach(element => {
         element.style.backgroundImage = imageUrl;
       });
     })
     .catch(error => {
-      console.error('Unable to load flagship visual atlas:', error);
+      console.error('Unable to load approved flagship visuals:', error);
     });
 }
