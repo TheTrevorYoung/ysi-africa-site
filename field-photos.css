@@ -1,0 +1,31 @@
+/* Stable documentary photography, using the same baked-asset approach as the 16-step visuals. */
+.field-hero-image{
+  width:100%;
+  aspect-ratio:1.44/1;
+  background-image:url("assets/field-atlas.webp?v=20260901atlas2");
+  background-repeat:no-repeat;
+  background-size:200% 200%;
+  background-position:left top;
+  border-radius:inherit;
+}
+
+.field-evidence-grid{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  gap:clamp(28px,5vw,64px);
+  align-items:center;
+}
+
+.field-evidence-copy .lede{margin-bottom:16px;}
+.field-proof{display:flex;flex-direction:column;gap:4px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(7,92,55,.2);}
+.field-proof strong{color:#075c37;text-transform:uppercase;letter-spacing:.08em;font-size:.84rem;}
+.field-proof span{color:#59645e;font-size:.95rem;}
+
+.field-mosaic{margin:0;border:1px solid #cbd8d0;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(22,45,35,.10);}
+.field-mosaic img{display:block;width:100%;height:auto;aspect-ratio:auto;object-fit:contain;background:#eef3ef;}
+.field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
+
+@media (max-width:780px){
+  .field-evidence-grid{grid-template-columns:1fr;gap:26px;}
+  .field-mosaic{border-radius:18px;}
+}
