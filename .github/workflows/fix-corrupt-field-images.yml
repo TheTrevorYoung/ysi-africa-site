@@ -1,0 +1,41 @@
+name: Fix corrupt field image integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-corrupt-field-images.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove broken documentary image block
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('flagship.html')
+          s = p.read_text()
+          start = s.find('  <section class="section field-evidence flagship-field-evidence"')
+          end_marker = '  <section class="section process-section">'
+          end = s.find(end_marker, start)
+          if start != -1 and end != -1:
+              s = s[:start] + s[end:]
+              p.write_text(s)
+      - name: Remove corrupt image assets
+        run: |
+          rm -f assets/field-hero.webp assets/field-evidence-grid.webp
+      - name: Commit repair
+        run: |
+          git config user.name "YSI Site Repair"
+          git config user.email "actions@users.noreply.github.com"
+          git add flagship.html assets/field-hero.webp assets/field-evidence-grid.webp || true
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+          else
+            git commit -m "Remove corrupt field image integration"
+            git push
+          fi
