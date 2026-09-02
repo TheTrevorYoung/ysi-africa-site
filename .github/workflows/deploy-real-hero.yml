@@ -1,0 +1,76 @@
+name: Deploy verified real homepage hero
+
+on:
+  push:
+    paths:
+      - '.github/workflows/deploy-real-hero.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-real-hero:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild and validate real Facebook-sourced photo
+        shell: python
+        run: |
+          import base64, hashlib
+          from pathlib import Path
+
+          parts = []
+          for i in range(10):
+              p = Path(f'assets/real-hero-{i:02d}.txt')
+              part = ''.join(p.read_text().split())
+              expected = 6000 if i < 9 else 5548
+              if len(part) != expected:
+                  raise SystemExit(f'{p}: unexpected length {len(part)} != {expected}')
+              parts.append(part)
+
+          encoded = ''.join(parts)
+          if len(encoded) != 59548:
+              raise SystemExit(f'combined Base64 length invalid: {len(encoded)}')
+          if hashlib.sha256(encoded.encode()).hexdigest() != '5e48ded42e53f5237a3f575c91fc2ff490f129fdbb4bc9b8870a1f46b46ed6c7':
+              raise SystemExit('combined Base64 hash invalid')
+
+          data = base64.b64decode(encoded, validate=True)
+          if hashlib.sha256(data).hexdigest() != '0e0a8adc19b74075275d401f81863a635fa0613b470efed58b8241cc29e8c84b':
+              raise SystemExit('decoded image hash invalid')
+          if not data.startswith(b'\xff\xd8') or not data.endswith(b'\xff\xd9'):
+              raise SystemExit('decoded JPEG framing invalid')
+
+          Path('assets/ysi-hero-real.jpg').write_bytes(data)
+          print('validated decoded bytes:', len(data))
+
+      - name: Verify web image dimensions
+        run: |
+          file assets/ysi-hero-real.jpg
+          test -s assets/ysi-hero-real.jpg
+          file assets/ysi-hero-real.jpg | grep -qi 'JPEG image data'
+          file assets/ysi-hero-real.jpg | grep -q '600x450'
+
+      - name: Replace AI hero references and bust caches
+        run: |
+          for f in field-photos.css script.js index.html flagship.html; do
+            sed -i 's#assets/ysi-hero.jpg#assets/ysi-hero-real.jpg#g' "$f"
+            sed -i 's#20260902photofix1#20260902realhero1#g' "$f"
+          done
+          rm -f assets/ysi-hero.jpg
+
+      - name: Commit real field photo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A assets/ysi-hero-real.jpg assets/ysi-hero.jpg field-photos.css script.js index.html flagship.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Replace AI hero with real Lumley Beach cleanup photo"
+            git push
+          fi
