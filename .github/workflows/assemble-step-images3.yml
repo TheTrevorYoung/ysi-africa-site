@@ -39,30 +39,34 @@ jobs:
               exit 0
             fi
           done
-          cat .image-parts3/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step15-final.webp
-          cat .image-parts3/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step16-final.webp
-          test -s assets/step15-final.webp
-          test -s assets/step16-final.webp
+          mkdir -p assets/images
+          cat .image-parts3/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/images/step15-final.webp
+          cat .image-parts3/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/images/step16-final.webp
+          test -s assets/images/step15-final.webp
+          test -s assets/images/step16-final.webp
           cat >> flagship-visuals.css <<'CSS'
 
 /* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
 .step-thumb.step-15,
 .detail-visual.step-15 {
-  background-image:url("assets/step15-final.webp?v=20260902final");
+  background-image:url("assets/images/step15-final.webp?v=20260902final");
   background-size:cover;
   background-position:center;
 }
 .network-canvas,
 .step-thumb.step-16 {
-  background-image:url("assets/step16-final.webp?v=20260902final");
+  background-image:url("assets/images/step16-final.webp?v=20260902final");
   background-size:cover;
   background-position:center;
 }
 CSS
           rm -rf .image-parts .image-parts2 .image-parts3
-          rm -f .github/workflows/assemble-step-images.yml .github/workflows/assemble-step-images2.yml .github/workflows/assemble-step-images3.yml
           git config user.name "YSI Website Automation"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
+          git add -A -- ':!.github/workflows'
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
           git commit -m "Install approved Step 15 and Step 16 visuals"
           git push
