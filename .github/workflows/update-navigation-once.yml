@@ -21,22 +21,23 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-
-          files = ['index.html','about.html','flagship.html','aberdeen.html','evidence.html']
-
+          files = ['index.html', 'about.html', 'flagship.html', 'aberdeen.html', 'evidence.html']
           for name in files:
               p = Path(name)
               s = p.read_text()
               what = '#work' if name == 'index.html' else 'index.html#work'
               contact = '#contact' if name == 'index.html' else 'mailto:info@ysiafrica.org?subject=YSI%20Africa%20Inquiry'
-              nav = f'''<nav id="nav" class="nav" aria-label="Main navigation">
-      <a href="about.html">About Us</a>
-      <a href="{what}">What We Do</a>
-      <a href="flagship.html">Freetown Circular Waste Project</a>
-      <a href="aberdeen.html">Aberdeen</a>
-      <a href="evidence.html">Evidence</a>
-      <a class="nav-cta" href="{contact}">Contact Us</a>
-    </nav>'''
+              lines = [
+                  '<nav id="nav" class="nav" aria-label="Main navigation">',
+                  '  <a href="about.html">About Us</a>',
+                  f'  <a href="{what}">What We Do</a>',
+                  '  <a href="flagship.html">Freetown Circular Waste Project</a>',
+                  '  <a href="aberdeen.html">Aberdeen</a>',
+                  '  <a href="evidence.html">Evidence</a>',
+                  f'  <a class="nav-cta" href="{contact}">Contact Us</a>',
+                  '</nav>'
+              ]
+              nav = '\n    '.join(lines)
               s2, n = re.subn(r'<nav id="nav" class="nav" aria-label="Main navigation">.*?</nav>', nav, s, count=1, flags=re.S)
               if n != 1:
                   raise SystemExit(f'Navigation not uniquely found in {name}: {n}')
@@ -48,6 +49,6 @@ jobs:
         run: |
           git config user.name "YSI Africa Site Automation"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html about.html flagship.html aberdeen.html evidence.html .github/workflows/update-navigation-once.yml
+          git add -A
           git commit -m "Streamline YSI site navigation"
           git push
