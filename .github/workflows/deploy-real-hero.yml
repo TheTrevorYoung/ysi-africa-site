@@ -1,4 +1,4 @@
-name: Wire simple static YSI field photos
+name: Strengthen YSI flagship SEO and credibility
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  wire-static-field-photos:
+  improve-flagship:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,167 +18,90 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify clean static photo assets
-        run: |
-          test -s assets/ysi-field-waste-stream.webp
-          test -s assets/ysi-field-collection-logistics.webp
-          file assets/ysi-field-waste-stream.webp
-          file assets/ysi-field-collection-logistics.webp
-          file assets/ysi-field-waste-stream.webp | grep -qi webp
-          file assets/ysi-field-collection-logistics.webp | grep -qi webp
-
-      - name: Point HTML directly to static WebP files
+      - name: Improve flagship search signals and credibility wording
         shell: python
         run: |
-          import re
           from pathlib import Path
 
-          targets = [
-              (
-                  'index.html',
-                  'assets/ysi-field-waste-stream.webp',
-                  'Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown'
-              ),
-              (
-                  'flagship.html',
-                  'assets/ysi-field-collection-logistics.webp',
-                  'Waste collection tricycle documented during Lumley Beach field operations in Freetown'
-              ),
+          p = Path('flagship.html')
+          html = p.read_text()
+
+          replacements = {
+            '<title>Local Waste. Local Value. Local Energy. | YSI Africa</title>': '<title>Freetown Circular Waste Pilot | YSI Africa Sierra Leone</title>',
+            '<meta name="description" content="YSI Africa is developing a localized waste-interception and circular resource-recovery pilot for Freetown built around measurement, characterization, sorting, recovery testing and evidence-led replication.">': '<meta name="description" content="YSI Africa is developing a localized circular waste pilot in Freetown, Sierra Leone focused on waste interception, measurement, characterization, sorting, recovery testing and evidence-led replication.">',
+            '<meta name="theme-color" content="#075c37">': '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">\n  <meta name="theme-color" content="#075c37">',
+            '<link rel="canonical" href="https://ysiafrica.org/flagship.html">': '<link rel="canonical" href="https://ysiafrica.org/flagship.html">\n  <meta property="og:site_name" content="YSI Africa">\n  <meta property="og:title" content="Freetown Circular Waste Pilot | YSI Africa Sierra Leone">\n  <meta property="og:description" content="A development-stage YSI Africa pilot for localized waste interception, measurement, characterization, sorting, recovery testing and evidence-led replication in Freetown, Sierra Leone.">\n  <meta property="og:type" content="website">\n  <meta property="og:url" content="https://ysiafrica.org/flagship.html">\n  <meta property="og:image" content="https://ysiafrica.org/assets/ysi-field-collection-logistics.webp">\n  <meta name="twitter:card" content="summary_large_image">\n  <meta name="twitter:title" content="Freetown Circular Waste Pilot | YSI Africa Sierra Leone">\n  <meta name="twitter:description" content="A development-stage circular waste and resource-recovery pilot concept for Freetown, Sierra Leone.">\n  <meta name="twitter:image" content="https://ysiafrica.org/assets/ysi-field-collection-logistics.webp">',
+            '<h1>Local Waste.<br><span>Local Value.</span><br>Local Energy.</h1>': '<h1>Local Waste.<br><span>Local Value.</span><br>Better Systems.</h1>',
+            'YSI-controlled haulage services bins according to actual use.': 'Compliant collection and haulage would service bins according to actual use.',
+            'Covered skip bins capture waste close to where it is produced.': 'Proposed covered skip bins would capture waste close to where it is produced.',
+            'Every load is weighed, recorded and linked to its collection point.': 'Incoming loads would be weighed, recorded and linked to their collection point.',
+            'Incoming waste is checked for hazards, contamination and unsuitable items.': 'Incoming waste would be checked for hazards, contamination and unsuitable items.',
+            'Materials move through the sorting process for identification.': 'Materials would move through a sorting process for identification and characterization.',
+            'Recyclables, organics, energy candidates, special waste and true residual are divided.': 'Recyclables, organics, potential energy candidates, special waste and true residual would be separated for evaluation.',
+            'Each separated stream moves to its designated recovery or control pathway.': 'Each separated stream would be routed only to a recovery, treatment or disposal pathway supported by evidence and compliance requirements.',
+            'Suitable combustible residual is cleaned and prepared for RDF processing.': 'Suitable combustible residual could be prepared for RDF/SRF testing only if characterization supports that pathway.',
+            'Excess moisture is removed from the energy-candidate material.': 'If an energy pathway is justified, moisture reduction requirements would be tested.',
+            'Dried material is reduced to the required size.': 'If justified, prepared material would be size-reduced to specifications established through testing.',
+            'The prepared material becomes refuse-derived fuel.': 'Prepared material would be tested to determine whether it can meet RDF/SRF requirements.',
+            'RDF is used in a controlled thermal system and recovered heat returns to Step 09.': 'If validated and approved, RDF/SRF could be tested in a controlled thermal system and heat-recovery performance measured.',
+            'Bottom ash, fly ash and pollution-control residues are kept separate.': 'If a thermal trial is justified, residues would be captured and kept separate for testing and control.',
+            'Tested bottom ash may support construction use; other residues are controlled.': 'Tested bottom ash may have a construction pathway only if compliant testing supports it; other residues would require appropriate control.',
+            'Unit 01 informs a better Unit 02 and a standardized Unit 03.': 'Evidence from Unit 01 would determine whether and how a later unit should be improved or replicated.',
+            'Multiple Circular Resource Units form the Freetown Circular Grid.': 'Multiple units could form a wider Freetown network only after Pilot 1 proves the operating model.'
+          }
+
+          for old, new in replacements.items():
+              if old not in html:
+                  raise SystemExit(f'Expected text not found: {old[:90]}')
+              html = html.replace(old, new, 1)
+
+          structured = '''\n  <script type="application/ld+json">\n  {\n    "@context": "https://schema.org",\n    "@type": "WebPage",\n    "name": "Freetown Circular Waste Pilot | YSI Africa Sierra Leone",\n    "url": "https://ysiafrica.org/flagship.html",\n    "description": "YSI Africa is developing a localized circular waste pilot in Freetown, Sierra Leone focused on interception, measurement, characterization, sorting, recovery testing and evidence-led replication.",\n    "isPartOf": {"@id": "https://ysiafrica.org/#website"},\n    "about": {"@id": "https://ysiafrica.org/#organization"},\n    "inLanguage": "en"\n  }\n  </script>'''
+          marker = '  <link rel="stylesheet" href="field-photos.css?v=20260902static1">'
+          if structured.strip() not in html:
+              if marker not in html:
+                  raise SystemExit('stylesheet marker not found for structured data insertion')
+              html = html.replace(marker, marker + structured, 1)
+
+          p.write_text(html)
+
+          sitemap = Path('sitemap.xml')
+          sm = sitemap.read_text().replace('<lastmod>2026-09-02</lastmod>', '<lastmod>2026-09-02</lastmod>')
+          sitemap.write_text(sm)
+
+      - name: Verify flagship safeguards
+        shell: python
+        run: |
+          from pathlib import Path
+          html = Path('flagship.html').read_text()
+          required = [
+              'Freetown Circular Waste Pilot | YSI Africa Sierra Leone',
+              'meta name="robots" content="index,follow',
+              'Better Systems.',
+              'Compliant collection and haulage would service bins',
+              'Prepared material would be tested to determine whether it can meet RDF/SRF requirements.',
+              'Multiple units could form a wider Freetown network only after Pilot 1 proves the operating model.'
           ]
+          for item in required:
+              if item not in html:
+                  raise SystemExit(f'Missing required update: {item}')
+          forbidden = [
+              'YSI-controlled haulage services bins',
+              'The prepared material becomes refuse-derived fuel.',
+              'RDF is used in a controlled thermal system and recovered heat returns to Step 09.'
+          ]
+          for item in forbidden:
+              if item in html:
+                  raise SystemExit(f'Credibility overclaim remains: {item}')
+          print('flagship SEO and credibility safeguards verified')
 
-          for html_name, src, alt in targets:
-              p = Path(html_name)
-              html = p.read_text()
-              pattern = r'(<figure class="field-mosaic">\s*)<img\b[^>]*>'
-              replacement = rf'\1<img src="{src}" loading="lazy" alt="{alt}">'
-              html, count = re.subn(pattern, replacement, html, count=1, flags=re.S)
-              if count != 1:
-                  raise SystemExit(f'{html_name}: field image replacement failed')
-              html = re.sub(r'field-photos\.css\?v=[^"\']+', 'field-photos.css?v=20260902static1', html)
-              html = re.sub(r'script\.js\?v=[^"\']+', 'script.js?v=20260902static1', html)
-              if 'data:image/' in html:
-                  raise SystemExit(f'{html_name}: inline field image data remains')
-              if f'src="{src}"' not in html:
-                  raise SystemExit(f'{html_name}: direct static photo reference missing')
-              p.write_text(html)
-
-      - name: Remove field-photo JavaScript entirely
-        shell: python
-        run: |
-          from pathlib import Path
-
-          script = """const button = document.querySelector('.menu');
-          const nav = document.querySelector('.nav');
-          if (button && nav) {
-            button.addEventListener('click', () => {
-              const open = nav.classList.toggle('open');
-              button.setAttribute('aria-expanded', String(open));
-            });
-            nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-              nav.classList.remove('open');
-              button.setAttribute('aria-expanded', 'false');
-            }));
-          }
-
-          // Preserve the approved homepage hero photograph exactly as-is.
-          const heroPhoto = document.querySelector('.hero-photo');
-          if (heroPhoto) {
-            const oldImage = heroPhoto.querySelector('img');
-            if (oldImage) {
-              const documentaryHero = document.createElement('div');
-              documentaryHero.className = 'field-hero-image';
-              documentaryHero.setAttribute('role', 'img');
-              documentaryHero.setAttribute('aria-label', 'Documentary field cleanup work at Lumley Beach in Freetown');
-              oldImage.replaceWith(documentaryHero);
-            }
-            const caption = heroPhoto.querySelector('figcaption');
-            if (caption) caption.textContent = 'Documentary field photography from Lumley Beach cleanup work in Freetown.';
-          }
-          """
-          Path('script.js').write_text(script)
-
-      - name: Use simple static image CSS
-        shell: python
-        run: |
-          from pathlib import Path
-
-          css = """/* Simple static photography, matching the 16-step asset approach. */
-          .field-hero-image{
-            width:100%;
-            aspect-ratio:1.44/1;
-            background-image:url("assets/ysi-hero-real.jpg?v=20260902realhero1");
-            background-repeat:no-repeat;
-            background-size:cover;
-            background-position:center;
-            border-radius:inherit;
-          }
-
-          .field-evidence-grid{
-            display:grid;
-            grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-            gap:clamp(28px,5vw,64px);
-            align-items:center;
-          }
-
-          .field-evidence-copy .lede{margin-bottom:16px;}
-          .field-proof{display:flex;flex-direction:column;gap:4px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(7,92,55,.2);}
-          .field-proof strong{color:#075c37;text-transform:uppercase;letter-spacing:.08em;font-size:.84rem;}
-          .field-proof span{color:#59645e;font-size:.95rem;}
-
-          .field-mosaic{
-            margin:0;
-            border:1px solid #cbd8d0;
-            border-radius:24px;
-            overflow:hidden;
-            background:#fff;
-            box-shadow:0 18px 45px rgba(22,45,35,.10);
-          }
-
-          .field-mosaic img{
-            display:block;
-            width:100%;
-            height:auto;
-          }
-
-          .field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
-
-          @media (max-width:780px){
-            .field-evidence-grid{grid-template-columns:1fr;gap:26px;}
-            .field-mosaic{border-radius:18px;}
-          }
-          """
-          Path('field-photos.css').write_text(css)
-
-      - name: Verify no old photo machinery remains
-        shell: python
-        run: |
-          from pathlib import Path
-
-          script = Path('script.js').read_text()
-          for token in ('homepageFieldPhoto', 'flagshipFieldPhoto', 'setFieldEvidencePhoto', 'fieldPhotoStyles'):
-              if token in script:
-                  raise SystemExit(f'old field-photo JS remains: {token}')
-
-          css = Path('field-photos.css').read_text()
-          if '.field-mosaic::before' in css or 'display:none' in css:
-              raise SystemExit('old field-photo CSS overlay/hide rule remains')
-
-          homepage = Path('index.html').read_text()
-          flagship = Path('flagship.html').read_text()
-          if 'assets/ysi-field-waste-stream.webp' not in homepage:
-              raise SystemExit('homepage static WebP missing')
-          if 'assets/ysi-field-collection-logistics.webp' not in flagship:
-              raise SystemExit('flagship static WebP missing')
-          print('simple static photo wiring verified')
-
-      - name: Commit simple static photo wiring
+      - name: Commit improvements
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html flagship.html script.js field-photos.css
+          git add flagship.html sitemap.xml
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Wire clean field photos like 16-step graphics"
+            git commit -m "Strengthen flagship SEO and credibility wording"
             git push
           fi
