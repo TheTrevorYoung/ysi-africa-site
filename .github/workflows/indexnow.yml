@@ -1,3 +1,4 @@
+# YSI Africa search discovery: notify participating engines after material site updates.
 name: Notify search engines via IndexNow
 
 on:
