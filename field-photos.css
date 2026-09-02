@@ -22,19 +22,15 @@
 .field-proof span{color:#59645e;font-size:.95rem;}
 
 .field-mosaic{margin:0;border:1px solid #cbd8d0;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(22,45,35,.10);}
-/* Failsafe: the former field-atlas file was over-compressed. Hide it even if an older page is cached and render the approved field photograph instead. */
-.field-mosaic img{display:none;}
-.field-mosaic::before{
-  content:"";
+.field-mosaic img{
   display:block;
   width:100%;
   aspect-ratio:1.44/1;
-  background-image:url("assets/ysi-hero-real.jpg?v=20260902realhero1");
-  background-repeat:no-repeat;
-  background-size:cover;
-  background-position:center;
-  background-color:#eef3ef;
+  object-fit:cover;
+  object-position:center;
+  background:#eef3ef;
 }
+.field-mosaic::before{display:none!important;content:none!important;}
 .field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
 
 @media (max-width:780px){
