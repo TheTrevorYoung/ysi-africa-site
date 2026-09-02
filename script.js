@@ -5,7 +5,7 @@ document.head.appendChild(flagshipStyles);
 
 const fieldPhotoStyles = document.createElement('link');
 fieldPhotoStyles.rel = 'stylesheet';
-fieldPhotoStyles.href = 'field-photos.css?v=20260902distinct3';
+fieldPhotoStyles.href = 'field-photos.css?v=20260902distinct4';
 document.head.appendChild(fieldPhotoStyles);
 
 const button = document.querySelector('.menu');
@@ -33,7 +33,7 @@ function setFieldEvidencePhoto(titleId, src, alt, captionText) {
   const caption = figure ? figure.querySelector('figcaption') : null;
 
   if (image) {
-    image.src = src;
+    if (!image.src.startsWith('data:image/')) image.src = src;
     image.alt = alt;
   }
   if (caption) caption.textContent = captionText;
