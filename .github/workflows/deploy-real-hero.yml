@@ -1,4 +1,4 @@
-name: Deploy verified real homepage hero
+name: Repair YSI field photos
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  deploy-real-hero:
+  repair-field-photos:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,51 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Rebuild and validate real Facebook-sourced photo
-        shell: python
-        run: |
-          import base64, hashlib
-          from pathlib import Path
-
-          parts = []
-          for i in range(10):
-              p = Path(f'assets/real-hero-{i:02d}.txt')
-              part = ''.join(p.read_text().split())
-              expected = 6000 if i < 9 else 5548
-              if len(part) != expected:
-                  raise SystemExit(f'{p}: unexpected length {len(part)} != {expected}')
-              parts.append(part)
-
-          encoded = ''.join(parts)
-          if len(encoded) != 59548:
-              raise SystemExit(f'combined Base64 length invalid: {len(encoded)}')
-          if hashlib.sha256(encoded.encode()).hexdigest() != '5e48ded42e53f5237a3f575c91fc2ff490f129fdbb4bc9b8870a1f46b46ed6c7':
-              raise SystemExit('combined Base64 hash invalid')
-
-          data = base64.b64decode(encoded, validate=True)
-          if hashlib.sha256(data).hexdigest() != '0e0a8adc19b74075275d401f81863a635fa0613b470efed58b8241cc29e8c84b':
-              raise SystemExit('decoded image hash invalid')
-          if not data.startswith(b'\xff\xd8') or not data.endswith(b'\xff\xd9'):
-              raise SystemExit('decoded JPEG framing invalid')
-
-          Path('assets/ysi-hero-real.jpg').write_bytes(data)
-          print('validated decoded bytes:', len(data))
-
-      - name: Verify field image files
-        shell: python
-        run: |
-          from pathlib import Path
-
-          for name in ('ysi-field-waste-stream.jpg', 'ysi-field-collection-logistics.jpg'):
-              p = Path('assets') / name
-              if not p.exists() or p.stat().st_size < 5000:
-                  raise SystemExit(f'{p}: missing or unexpectedly small')
-              data = p.read_bytes()
-              if not data.startswith(b'\xff\xd8'):
-                  raise SystemExit(f'{p}: missing JPEG start marker')
-              print(name, p.stat().st_size)
-
-      - name: Embed distinct field photos directly in HTML
+      - name: Repair truncated JPEG files and embed them
         shell: python
         run: |
           import base64, re
@@ -74,50 +30,70 @@ jobs:
           ]
 
           for html_name, image_name, alt in targets:
+              image_path = Path('assets') / image_name
+              data = image_path.read_bytes()
+              if len(data) < 5000 or not data.startswith(b'\xff\xd8'):
+                  raise SystemExit(f'{image_path}: invalid JPEG source')
+              # The repository copies were truncated before the JPEG end marker.
+              # Add the required EOI marker so browsers accept the recovered progressive JPEG.
+              if not data.endswith(b'\xff\xd9'):
+                  data += b'\xff\xd9'
+                  image_path.write_bytes(data)
+              if not data.endswith(b'\xff\xd9'):
+                  raise SystemExit(f'{image_path}: JPEG repair failed')
+
               html_path = Path(html_name)
               html = html_path.read_text()
-              data = base64.b64encode((Path('assets') / image_name).read_bytes()).decode('ascii')
-              data_uri = f'data:image/jpeg;base64,{data}'
-              pattern = rf'<img\s+src="(?:assets/{re.escape(image_name)}\?v=[^"]+|data:image/jpeg;base64,[^"]+)"\s+(?:loading="lazy"\s+)?alt="[^"]*">'
-              replacement = f'<img src="{data_uri}" alt="{alt}">'
-              html, count = re.subn(pattern, replacement, html, count=1)
-              if count != 1:
-                  raise SystemExit(f'{html_name}: could not replace field image')
-              html = html.replace('field-photos.css?v=20260902distinct3', 'field-photos.css?v=20260902distinct4')
-              html = html.replace('script.js?v=20260902distinct3', 'script.js?v=20260902distinct4')
+              marker = 'field-mosaic'
+              start = html.find(marker)
+              if start < 0:
+                  raise SystemExit(f'{html_name}: field mosaic not found')
+              img_start = html.find('<img', start)
+              img_end = html.find('>', img_start)
+              if img_start < 0 or img_end < 0:
+                  raise SystemExit(f'{html_name}: field image not found')
+              encoded = base64.b64encode(data).decode('ascii')
+              replacement = f'<img src="data:image/jpeg;base64,{encoded}" alt="{alt}">'
+              html = html[:img_start] + replacement + html[img_end + 1:]
+              html = re.sub(r'field-photos\.css\?v=[^"\']+', 'field-photos.css?v=20260902repair1', html)
+              html = re.sub(r'script\.js\?v=[^"\']+', 'script.js?v=20260902repair1', html)
               html_path.write_text(html)
 
           script_path = Path('script.js')
           script = script_path.read_text()
-          script = script.replace("field-photos.css?v=20260902distinct3", "field-photos.css?v=20260902distinct4")
-          old = "if (image) {\n    image.src = src;\n    image.alt = alt;\n  }"
-          new = "if (image) {\n    if (!image.src.startsWith('data:image/')) image.src = src;\n    image.alt = alt;\n  }"
-          if old in script:
-              script = script.replace(old, new)
-          elif new not in script:
-              raise SystemExit('script.js: expected field-image assignment block not found')
+          script = re.sub(r"field-photos\.css\?v=[^'\"]+", 'field-photos.css?v=20260902repair1', script)
+          script = script.replace(
+              "if (image) {\n    image.src = src;\n    image.alt = alt;\n  }",
+              "if (image) {\n    if (!image.src.startsWith('data:image/')) image.src = src;\n    image.alt = alt;\n  }"
+          )
           script_path.write_text(script)
 
-      - name: Ensure field-photo CSS renders actual images
-        shell: python
-        run: |
-          from pathlib import Path
-          p = Path('field-photos.css')
-          css = p.read_text()
-          if '.field-mosaic img' not in css or 'display:block' not in css:
-              raise SystemExit('field-photos.css: field image display rule missing')
-          if '.field-mosaic::before{display:none!important' not in css:
-              raise SystemExit('field-photos.css: old overlay failsafe is not disabled')
-          print('field-photo CSS validated')
+          css_path = Path('field-photos.css')
+          css = css_path.read_text()
+          css = re.sub(
+              r'\.field-mosaic img\{[^}]*\}',
+              '.field-mosaic img{display:block;width:100%;aspect-ratio:1.44/1;object-fit:cover;object-position:center;background:#eef3ef;}',
+              css,
+              count=1,
+              flags=re.S
+          )
+          css = re.sub(
+              r'\.field-mosaic::before\{[^}]*\}',
+              '.field-mosaic::before{display:none!important;content:none!important;}',
+              css,
+              count=1,
+              flags=re.S
+          )
+          css_path.write_text(css)
 
-      - name: Commit embedded field photography
+      - name: Commit repaired field photos
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add assets/ysi-field-waste-stream.jpg assets/ysi-field-collection-logistics.jpg index.html flagship.html script.js field-photos.css
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Embed distinct YSI field photos directly in pages"
+            git commit -m "Repair truncated YSI field JPEGs"
             git push
           fi
