@@ -5,7 +5,7 @@ document.head.appendChild(flagshipStyles);
 
 const fieldPhotoStyles = document.createElement('link');
 fieldPhotoStyles.rel = 'stylesheet';
-fieldPhotoStyles.href = 'field-photos.css?v=20260902realhero1';
+fieldPhotoStyles.href = 'field-photos.css?v=20260902distinct3';
 document.head.appendChild(fieldPhotoStyles);
 
 const button = document.querySelector('.menu');
@@ -22,8 +22,8 @@ if (button && nav) {
 }
 
 // Keep the approved homepage hero exactly as-is, but use different real YSI field photos elsewhere.
-const homepageFieldPhoto = 'assets/ysi-field-waste-stream.jpg?v=20260902distinct2';
-const flagshipFieldPhoto = 'assets/ysi-field-collection-logistics.jpg?v=20260902distinct2';
+const homepageFieldPhoto = 'assets/ysi-field-waste-stream.jpg?v=20260902distinct3';
+const flagshipFieldPhoto = 'assets/ysi-field-collection-logistics.jpg?v=20260902distinct3';
 
 function setFieldEvidencePhoto(titleId, src, alt, captionText) {
   const title = document.getElementById(titleId);
