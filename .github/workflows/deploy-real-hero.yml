@@ -48,39 +48,69 @@ jobs:
           Path('assets/ysi-hero-real.jpg').write_bytes(data)
           print('validated decoded bytes:', len(data))
 
-      - name: Verify web image dimensions
+      - name: Verify field image files
+        shell: python
         run: |
-          file assets/ysi-hero-real.jpg
-          test -s assets/ysi-hero-real.jpg
-          file assets/ysi-hero-real.jpg | grep -qi 'JPEG image data'
-          file assets/ysi-hero-real.jpg | grep -q '600x450'
+          from pathlib import Path
+          from PIL import Image
 
-      - name: Keep hero and force distinct field photography
+          for name in ('ysi-field-waste-stream.jpg', 'ysi-field-collection-logistics.jpg'):
+              p = Path('assets') / name
+              if not p.exists() or p.stat().st_size < 5000:
+                  raise SystemExit(f'{p}: missing or unexpectedly small')
+              with Image.open(p) as im:
+                  im.verify()
+              print(name, p.stat().st_size)
+
+      - name: Embed distinct field photos directly in HTML
+        shell: python
         run: |
-          for f in field-photos.css script.js index.html flagship.html; do
-            sed -i 's#assets/ysi-hero.jpg#assets/ysi-hero-real.jpg#g' "$f"
-            sed -i 's#20260902photofix1#20260902realhero1#g' "$f"
-          done
+          import base64, re
+          from pathlib import Path
 
-          # Homepage field-evidence photo: use a different real YSI field image.
-          sed -i 's#<img src="assets/ysi-hero-real.jpg?v=20260902realhero1" loading="lazy" alt="Documentary field cleanup work at Lumley Beach in Freetown">#<img src="assets/ysi-field-waste-stream.jpg?v=20260902distinct3" loading="lazy" alt="Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown">#' index.html
-          sed -i 's#<figcaption>Documentary field photography from Lumley Beach, Freetown.</figcaption>#<figcaption>Documented waste-stream conditions at Lumley Beach, Freetown.</figcaption>#' index.html
+          targets = [
+              ('index.html', 'ysi-field-waste-stream.jpg', 'Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown'),
+              ('flagship.html', 'ysi-field-collection-logistics.jpg', 'Waste collection tricycle documented during Lumley Beach field operations in Freetown'),
+          ]
 
-          # Flagship field-evidence photo: use a separate real YSI collection/logistics image.
-          sed -i 's#<img src="assets/field-atlas.webp?v=20260901atlas2" loading="lazy" alt="Documentary images from Lumley Beach field work showing cleanup, mixed waste, recovered plastic bottles and a cleaned shoreline">#<img src="assets/ysi-field-collection-logistics.jpg?v=20260902distinct3" loading="lazy" alt="Waste collection tricycle documented during Lumley Beach field operations in Freetown">#' flagship.html
-          sed -i 's#<figcaption>Documentary field images from Lumley Beach, Freetown • April 2026.</figcaption>#<figcaption>Documented collection and field logistics from Lumley Beach, Freetown.</figcaption>#' flagship.html
+          for html_name, image_name, alt in targets:
+              html_path = Path(html_name)
+              html = html_path.read_text()
+              data = base64.b64encode((Path('assets') / image_name).read_bytes()).decode('ascii')
+              data_uri = f'data:image/jpeg;base64,{data}'
+              pattern = rf'<img\s+src="(?:assets/{re.escape(image_name)}\?v=[^"]+|data:image/jpeg;base64,[^"]+)"\s+(?:loading="lazy"\s+)?alt="[^"]*">'
+              replacement = f'<img src="{data_uri}" alt="{alt}">'
+              html, count = re.subn(pattern, replacement, html, count=1)
+              if count != 1:
+                  raise SystemExit(f'{html_name}: could not replace field image')
+              html = html.replace('field-photos.css?v=20260902distinct3', 'field-photos.css?v=20260902distinct4')
+              html = html.replace('script.js?v=20260902distinct3', 'script.js?v=20260902distinct4')
+              html_path.write_text(html)
 
-          # Force browsers to load the corrected stylesheet and script.
-          sed -i 's#field-photos.css?v=20260902realhero1#field-photos.css?v=20260902distinct3#g' index.html
-          sed -i 's#field-photos.css?v=20260901atlas2#field-photos.css?v=20260902distinct3#g' flagship.html
-          sed -i 's#script.js?v=20260902realhero1#script.js?v=20260902distinct3#g' index.html
-          sed -i 's#script.js?v=20260901atlas2#script.js?v=20260902distinct3#g' flagship.html
-          sed -i 's#script.js?v=20260902distinct2#script.js?v=20260902distinct3#g' index.html flagship.html
-          sed -i 's#20260902distinct2#20260902distinct3#g' index.html flagship.html script.js
+          script_path = Path('script.js')
+          script = script_path.read_text()
+          script = script.replace("field-photos.css?v=20260902distinct3", "field-photos.css?v=20260902distinct4")
+          old = "if (image) {\n    image.src = src;\n    image.alt = alt;\n  }"
+          new = "if (image) {\n    if (!image.src.startsWith('data:image/')) image.src = src;\n    image.alt = alt;\n  }"
+          if old in script:
+              script = script.replace(old, new)
+          elif new not in script:
+              raise SystemExit('script.js: expected field-image assignment block not found')
+          script_path.write_text(script)
 
-          rm -f assets/ysi-hero.jpg
+      - name: Ensure field-photo CSS renders actual images
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('field-photos.css')
+          css = p.read_text()
+          if '.field-mosaic img' not in css or 'display:block' not in css:
+              raise SystemExit('field-photos.css: field image display rule missing')
+          if '.field-mosaic::before{display:none!important' not in css:
+              raise SystemExit('field-photos.css: old overlay failsafe is not disabled')
+          print('field-photo CSS validated')
 
-      - name: Commit distinct field photography
+      - name: Commit embedded field photography
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -88,6 +118,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Render distinct real YSI field photos"
+            git commit -m "Embed distinct YSI field photos directly in pages"
             git push
           fi
