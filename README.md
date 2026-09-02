@@ -4,7 +4,11 @@ Official website repository for **Young Sustainability Initiative (YSI Africa)**
 
 **Official website:** https://ysiafrica.org/
 
+**About YSI Africa:** https://ysiafrica.org/about.html
+
 **Evidence & field work:** https://ysiafrica.org/evidence.html
+
+**Freetown circular waste pilot:** https://ysiafrica.org/flagship.html
 
 Current verified public quantitative impact claim: **20,000+ kg of waste removed.**
 
