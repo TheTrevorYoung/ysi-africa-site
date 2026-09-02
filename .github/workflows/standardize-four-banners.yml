@@ -24,7 +24,7 @@ jobs:
           from PIL import Image, ImageDraw, ImageFont, ImageOps
           import subprocess
 
-          atlas = Image.open('assets/flagship-hq.webp').convert('RGB')
+          atlas = Image.open('assets/images/flagship-hq.webp').convert('RGB')
           w, h = atlas.size
           assert w == h and w % 4 == 0, f'Unexpected atlas size: {atlas.size}'
           cell = w // 4
@@ -73,9 +73,6 @@ jobs:
               x0, y0 = s['col']*cell, s['row']*cell
               source = atlas.crop((x0, y0, x0+cell, y0+cell))
 
-              # 06/10/12 already have square scene layouts. Step 14 came from a
-              # wide source with its own old banner and white lower padding, so
-              # isolate only the road scene and fit it beneath the standardized header.
               if num == '14':
                   scene = source.crop((0, round(cell*0.317), cell, round(cell*0.825)))
                   scene = ImageOps.fit(scene, (cell, cell-header_h), method=Image.Resampling.LANCZOS, centering=(0.5,0.5))
@@ -86,7 +83,6 @@ jobs:
 
               d = ImageDraw.Draw(out)
               d.rectangle((0, 0, cell, header_h), fill='white')
-
               d.text((round(cell*0.025), round(cell*0.025)), num,
                      font=ImageFont.truetype(bold, round(cell*0.115)), fill=green)
               d.rectangle((xdiv, round(cell*0.020), xdiv+2, round(cell*0.184)), fill=green)
@@ -97,9 +93,8 @@ jobs:
                      font=ImageFont.truetype(regular, round(cell*0.023)),
                      fill=gray, spacing=round(cell*0.006))
 
-              # Preserve the same YSI AFRICA brand treatment visible in Step 07.
               out.paste(brand, (bx0, by0))
-              out.save(f"assets/step{num}-standardized.webp", 'WEBP', quality=96, method=6)
+              out.save(f"assets/images/step{num}-standardized.webp", 'WEBP', quality=96, method=6)
               print('Created', num, out.size)
           PY
 
@@ -110,25 +105,25 @@ jobs:
           /* Final standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
           .step-thumb.step-06,
           .detail-visual.step-06{
-            background-image:url("assets/step06-standardized.webp?v=20260901std4b");
+            background-image:url("assets/images/step06-standardized.webp?v=20260901std4b");
             background-size:cover;
             background-position:center;
           }
           .step-thumb.step-10,
           .detail-visual.step-10{
-            background-image:url("assets/step10-standardized.webp?v=20260901std4b");
+            background-image:url("assets/images/step10-standardized.webp?v=20260901std4b");
             background-size:cover;
             background-position:center;
           }
           .step-thumb.step-12,
           .detail-visual.step-12{
-            background-image:url("assets/step12-standardized.webp?v=20260901std4b");
+            background-image:url("assets/images/step12-standardized.webp?v=20260901std4b");
             background-size:cover;
             background-position:center;
           }
           .step-thumb.step-14,
           .detail-visual.step-14{
-            background-image:url("assets/step14-standardized.webp?v=20260901std4b");
+            background-image:url("assets/images/step14-standardized.webp?v=20260901std4b");
             background-size:cover;
             background-position:center;
           }
@@ -146,6 +141,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/step06-standardized.webp assets/step10-standardized.webp assets/step12-standardized.webp assets/step14-standardized.webp flagship-visuals.css flagship.html
+          git add assets/images/step06-standardized.webp assets/images/step10-standardized.webp assets/images/step12-standardized.webp assets/images/step14-standardized.webp flagship-visuals.css flagship.html
           git commit -m "Finalize standardized banners for steps 06 10 12 and 14"
           git push
