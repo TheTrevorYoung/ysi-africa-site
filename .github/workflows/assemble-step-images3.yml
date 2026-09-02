@@ -1,0 +1,68 @@
+name: Install approved Step 15 and 16 visuals
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.image-parts3/**'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Assemble and install approved visuals
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            .image-parts3/step15-01.b64
+            .image-parts3/step15-02.b64
+            .image-parts3/step15-03.b64
+            .image-parts3/step15-04.b64
+            .image-parts3/step15-05.b64
+            .image-parts3/step16-01.b64
+            .image-parts3/step16-02.b64
+            .image-parts3/step16-03.b64
+            .image-parts3/step16-04.b64
+            .image-parts3/step16-05.b64
+            .image-parts3/step16-06.b64
+          )
+          for f in "${required[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "Waiting for $f"
+              exit 0
+            fi
+          done
+          cat .image-parts3/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step15-final.webp
+          cat .image-parts3/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step16-final.webp
+          test -s assets/step15-final.webp
+          test -s assets/step16-final.webp
+          cat >> flagship-visuals.css <<'CSS'
+
+/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
+.step-thumb.step-15,
+.detail-visual.step-15 {
+  background-image:url("assets/step15-final.webp?v=20260902final");
+  background-size:cover;
+  background-position:center;
+}
+.network-canvas,
+.step-thumb.step-16 {
+  background-image:url("assets/step16-final.webp?v=20260902final");
+  background-size:cover;
+  background-position:center;
+}
+CSS
+          rm -rf .image-parts .image-parts2 .image-parts3
+          rm -f .github/workflows/assemble-step-images.yml .github/workflows/assemble-step-images2.yml .github/workflows/assemble-step-images3.yml
+          git config user.name "YSI Website Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Install approved Step 15 and Step 16 visuals"
+          git push
