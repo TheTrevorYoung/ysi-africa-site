@@ -90,3 +90,17 @@
   background-size:cover;
   background-position:center;
 }
+
+/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
+.step-thumb.step-15,
+.detail-visual.step-15{
+  background-image:url("assets/images/step15-final.webp?v=20260902final");
+  background-size:cover;
+  background-position:center;
+}
+.network-canvas,
+.step-thumb.step-16{
+  background-image:url("assets/images/step16-final.webp?v=20260902final");
+  background-size:cover;
+  background-position:center;
+}
