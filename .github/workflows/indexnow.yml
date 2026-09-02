@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'about.html'
       - 'flagship.html'
       - 'evidence.html'
       - 'sitemap.xml'
@@ -49,6 +50,7 @@ jobs:
               "keyLocation": "https://ysiafrica.org/92477f15b37e86f34eb955bb9b1a59e3.txt",
               "urlList": [
                   "https://ysiafrica.org/",
+                  "https://ysiafrica.org/about.html",
                   "https://ysiafrica.org/flagship.html",
                   "https://ysiafrica.org/evidence.html"
               ]
