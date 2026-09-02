@@ -21,19 +21,39 @@ if (button && nav) {
   }));
 }
 
-const approvedFieldPhoto = 'assets/ysi-hero-real.jpg?v=20260902realhero1';
+// Keep the approved homepage hero exactly as-is, but use different real YSI field photos elsewhere.
+const homepageFieldPhoto = 'assets/ysi-field-waste-stream.jpg?v=20260902distinct1';
+const flagshipFieldPhoto = 'assets/ysi-field-collection-logistics.jpg?v=20260902distinct1';
 
-// Keep any existing field-evidence markup on the approved documentary asset.
-document.querySelectorAll('.field-mosaic img').forEach((image) => {
-  image.src = approvedFieldPhoto;
-  image.alt = 'Documentary field cleanup work at Lumley Beach in Freetown';
-});
+function setFieldEvidencePhoto(titleId, src, alt, captionText) {
+  const title = document.getElementById(titleId);
+  const section = title ? title.closest('.field-evidence') : null;
+  const figure = section ? section.querySelector('.field-mosaic') : null;
+  const image = figure ? figure.querySelector('img') : null;
+  const caption = figure ? figure.querySelector('figcaption') : null;
 
-document.querySelectorAll('.field-mosaic figcaption').forEach((caption) => {
-  caption.textContent = 'Documentary field photography from Lumley Beach, Freetown.';
-});
+  if (image) {
+    image.src = src;
+    image.alt = alt;
+  }
+  if (caption) caption.textContent = captionText;
+}
 
-// Homepage: replace any legacy placeholder illustration with approved documentary photography.
+setFieldEvidencePhoto(
+  'field-evidence-title',
+  homepageFieldPhoto,
+  'Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown',
+  'Documented waste-stream conditions at Lumley Beach, Freetown.'
+);
+
+setFieldEvidencePhoto(
+  'flagship-field-title',
+  flagshipFieldPhoto,
+  'Waste collection tricycle documented during Lumley Beach field operations in Freetown',
+  'Documented collection and field logistics from Lumley Beach, Freetown.'
+);
+
+// Homepage: preserve the approved real Lumley Beach hero photograph.
 const heroPhoto = document.querySelector('.hero-photo');
 if (heroPhoto) {
   const oldImage = heroPhoto.querySelector('img');
@@ -62,8 +82,8 @@ if (impactStrip && !document.getElementById('field-evidence-title')) {
           <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach • Freetown</span></div>
         </div>
         <figure class="field-mosaic">
-          <img src="${approvedFieldPhoto}" loading="lazy" alt="Documentary field cleanup work at Lumley Beach in Freetown">
-          <figcaption>Documentary field photography from Lumley Beach, Freetown.</figcaption>
+          <img src="${homepageFieldPhoto}" loading="lazy" alt="Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown">
+          <figcaption>Documented waste-stream conditions at Lumley Beach, Freetown.</figcaption>
         </figure>
       </div>
     </section>`);
@@ -83,8 +103,8 @@ if (processSection && !document.getElementById('flagship-field-title')) {
           <div class="field-proof"><strong>Actual field photography</strong><span>The 16-step graphics below remain concept illustrations.</span></div>
         </div>
         <figure class="field-mosaic">
-          <img src="${approvedFieldPhoto}" loading="lazy" alt="Documentary field cleanup work at Lumley Beach in Freetown">
-          <figcaption>Documentary field photography from Lumley Beach, Freetown.</figcaption>
+          <img src="${flagshipFieldPhoto}" loading="lazy" alt="Waste collection tricycle documented during Lumley Beach field operations in Freetown">
+          <figcaption>Documented collection and field logistics from Lumley Beach, Freetown.</figcaption>
         </figure>
       </div>
     </section>`);
