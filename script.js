@@ -22,8 +22,8 @@ if (button && nav) {
 }
 
 // Keep the approved homepage hero exactly as-is, but use different real YSI field photos elsewhere.
-const homepageFieldPhoto = 'assets/ysi-field-waste-stream.jpg?v=20260902distinct1';
-const flagshipFieldPhoto = 'assets/ysi-field-collection-logistics.jpg?v=20260902distinct1';
+const homepageFieldPhoto = 'assets/ysi-field-waste-stream.jpg?v=20260902distinct2';
+const flagshipFieldPhoto = 'assets/ysi-field-collection-logistics.jpg?v=20260902distinct2';
 
 function setFieldEvidencePhoto(titleId, src, alt, captionText) {
   const title = document.getElementById(titleId);
