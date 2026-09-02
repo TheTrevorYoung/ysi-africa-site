@@ -2,7 +2,7 @@
 .field-hero-image{
   width:100%;
   aspect-ratio:1.44/1;
-  background-image:url("assets/ysi-hero.jpg?v=20260902photofix1");
+  background-image:url("assets/ysi-hero-real.jpg?v=20260902realhero1");
   background-repeat:no-repeat;
   background-size:cover;
   background-position:center;
@@ -29,7 +29,7 @@
   display:block;
   width:100%;
   aspect-ratio:1.44/1;
-  background-image:url("assets/ysi-hero.jpg?v=20260902photofix1");
+  background-image:url("assets/ysi-hero-real.jpg?v=20260902realhero1");
   background-repeat:no-repeat;
   background-size:cover;
   background-position:center;

@@ -5,7 +5,7 @@ document.head.appendChild(flagshipStyles);
 
 const fieldPhotoStyles = document.createElement('link');
 fieldPhotoStyles.rel = 'stylesheet';
-fieldPhotoStyles.href = 'field-photos.css?v=20260902photofix1';
+fieldPhotoStyles.href = 'field-photos.css?v=20260902realhero1';
 document.head.appendChild(fieldPhotoStyles);
 
 const button = document.querySelector('.menu');
@@ -21,7 +21,7 @@ if (button && nav) {
   }));
 }
 
-const approvedFieldPhoto = 'assets/ysi-hero.jpg?v=20260902photofix1';
+const approvedFieldPhoto = 'assets/ysi-hero-real.jpg?v=20260902realhero1';
 
 // Keep any existing field-evidence markup on the approved documentary asset.
 document.querySelectorAll('.field-mosaic img').forEach((image) => {
