@@ -1,11 +1,11 @@
-/* Stable documentary photography, using the same baked-asset approach as the 16-step visuals. */
+/* Stable documentary photography. Keep public-facing field photos on approved, verified assets. */
 .field-hero-image{
   width:100%;
   aspect-ratio:1.44/1;
-  background-image:url("assets/field-atlas.webp?v=20260901atlas2");
+  background-image:url("assets/ysi-hero.jpg?v=20260902photofix1");
   background-repeat:no-repeat;
-  background-size:200% 200%;
-  background-position:left top;
+  background-size:cover;
+  background-position:center;
   border-radius:inherit;
 }
 
@@ -22,7 +22,19 @@
 .field-proof span{color:#59645e;font-size:.95rem;}
 
 .field-mosaic{margin:0;border:1px solid #cbd8d0;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(22,45,35,.10);}
-.field-mosaic img{display:block;width:100%;height:auto;aspect-ratio:auto;object-fit:contain;background:#eef3ef;}
+/* Failsafe: the former field-atlas file was over-compressed. Hide it even if an older page is cached and render the approved field photograph instead. */
+.field-mosaic img{display:none;}
+.field-mosaic::before{
+  content:"";
+  display:block;
+  width:100%;
+  aspect-ratio:1.44/1;
+  background-image:url("assets/ysi-hero.jpg?v=20260902photofix1");
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-position:center;
+  background-color:#eef3ef;
+}
 .field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
 
 @media (max-width:780px){
