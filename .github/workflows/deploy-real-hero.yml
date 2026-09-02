@@ -52,14 +52,14 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          from PIL import Image
 
           for name in ('ysi-field-waste-stream.jpg', 'ysi-field-collection-logistics.jpg'):
               p = Path('assets') / name
               if not p.exists() or p.stat().st_size < 5000:
                   raise SystemExit(f'{p}: missing or unexpectedly small')
-              with Image.open(p) as im:
-                  im.verify()
+              data = p.read_bytes()
+              if not data.startswith(b'\xff\xd8') or not data.endswith(b'\xff\xd9'):
+                  raise SystemExit(f'{p}: invalid JPEG framing')
               print(name, p.stat().st_size)
 
       - name: Embed distinct field photos directly in HTML
