@@ -22,14 +22,7 @@
 .field-proof span{color:#59645e;font-size:.95rem;}
 
 .field-mosaic{margin:0;border:1px solid #cbd8d0;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(22,45,35,.10);}
-.field-mosaic img{
-  display:block;
-  width:100%;
-  aspect-ratio:1.44/1;
-  object-fit:cover;
-  object-position:center;
-  background:#eef3ef;
-}
+.field-mosaic img{display:block;width:100%;aspect-ratio:1.44/1;object-fit:cover;object-position:center;background:#eef3ef;}
 .field-mosaic::before{display:none!important;content:none!important;}
 .field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
 
