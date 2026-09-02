@@ -1,0 +1,61 @@
+name: Notify search engines via IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'flagship.html'
+      - 'sitemap.xml'
+      - '92477f15b37e86f34eb955bb9b1a59e3.txt'
+      - '.github/workflows/indexnow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify-indexnow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify IndexNow key is live
+        env:
+          INDEXNOW_KEY: 92477f15b37e86f34eb955bb9b1a59e3
+        shell: bash
+        run: |
+          for attempt in {1..12}; do
+            body="$(curl -fsSL "https://ysiafrica.org/${INDEXNOW_KEY}.txt" || true)"
+            if [ "$body" = "$INDEXNOW_KEY" ]; then
+              echo "IndexNow verification key is live."
+              exit 0
+            fi
+            echo "Key not live yet; retrying..."
+            sleep 10
+          done
+          echo "IndexNow verification key did not become reachable."
+          exit 1
+
+      - name: Submit homepage and flagship page to IndexNow
+        env:
+          INDEXNOW_KEY: 92477f15b37e86f34eb955bb9b1a59e3
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          payload = {
+              "host": "ysiafrica.org",
+              "key": "92477f15b37e86f34eb955bb9b1a59e3",
+              "keyLocation": "https://ysiafrica.org/92477f15b37e86f34eb955bb9b1a59e3.txt",
+              "urlList": [
+                  "https://ysiafrica.org/",
+                  "https://ysiafrica.org/flagship.html"
+              ]
+          }
+          with open('/tmp/indexnow.json', 'w', encoding='utf-8') as f:
+              json.dump(payload, f)
+          PY
+          curl --fail-with-body --silent --show-error \
+            -X POST 'https://api.indexnow.org/indexnow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary '@/tmp/indexnow.json'
+          echo "IndexNow submission completed."
