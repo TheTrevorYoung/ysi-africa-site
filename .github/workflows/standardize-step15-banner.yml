@@ -22,18 +22,14 @@ jobs:
           python - <<'PY'
           from PIL import Image, ImageDraw, ImageFont
           import subprocess
-          from pathlib import Path
 
-          atlas = Image.open('assets/flagship-hq.webp').convert('RGB')
+          atlas = Image.open('assets/images/flagship-hq.webp').convert('RGB')
           w, h = atlas.size
           assert w == h and w % 4 == 0, f'Unexpected atlas size: {atlas.size}'
           cell = w // 4
 
-          # Step 07 is the locked visual reference for header proportions / branding.
           step07 = atlas.crop((2*cell, 1*cell, 3*cell, 2*cell))
-
-          # Use the currently displayed Step 15 scene so the city/network picture itself stays unchanged.
-          current15 = Image.open('assets/step15-standardized.webp').convert('RGB')
+          current15 = Image.open('assets/images/step15-standardized.webp').convert('RGB')
           if current15.size != (cell, cell):
               current15 = current15.resize((cell, cell), Image.Resampling.LANCZOS)
 
@@ -45,18 +41,13 @@ jobs:
           green = (5, 90, 52)
           gray = (70, 72, 72)
 
-          # Same proportions as the standardized 01 / 07 banner.
           header_h = round(cell * 0.234375)
           out = Image.new('RGB', (cell, cell), 'white')
           d = ImageDraw.Draw(out)
-
-          # Number and divider.
           d.text((round(cell*0.025), round(cell*0.025)), '15',
                  font=ImageFont.truetype(bold, round(cell*0.115)), fill=green)
           xdiv = round(cell*0.179)
           d.rectangle((xdiv, round(cell*0.020), xdiv+2, round(cell*0.184)), fill=green)
-
-          # Title and subtitle. Title is reduced only enough to preserve the exact 01/07 layout spacing.
           xt = round(cell*0.198)
           d.text((xt, round(cell*0.033)), 'REPLICATE THE UNIT',
                  font=ImageFont.truetype(bold, round(cell*0.045)), fill=green)
@@ -65,17 +56,14 @@ jobs:
                  font=ImageFont.truetype(regular, round(cell*0.023)), fill=gray,
                  spacing=round(cell*0.006))
 
-          # Preserve the exact YSI AFRICA brand treatment from Step 07.
           bx0, by0 = round(cell*0.678), round(cell*0.018)
           bx1, by1 = round(cell*0.988), round(cell*0.112)
           brand = step07.crop((bx0, by0, bx1, by1))
           out.paste(brand, (bx0, by0))
-
-          # Preserve the existing city/network image below the banner.
           scene = current15.crop((0, header_h, cell, cell))
           out.paste(scene, (0, header_h))
 
-          out.save('assets/step15-standardized.webp', 'WEBP', quality=96, method=6)
+          out.save('assets/images/step15-standardized.webp', 'WEBP', quality=96, method=6)
           print('Created corrected Step 15:', out.size)
           PY
       - name: Cache-bust corrected Step 15 only
@@ -84,8 +72,8 @@ jobs:
           from pathlib import Path
           css = Path('flagship-visuals.css')
           s = css.read_text()
-          s = s.replace('assets/step15-standardized.webp?v=20260901std15',
-                        'assets/step15-standardized.webp?v=20260901std15b')
+          s = s.replace('assets/images/step15-standardized.webp?v=20260901std15',
+                        'assets/images/step15-standardized.webp?v=20260901std15b')
           css.write_text(s)
 
           html = Path('flagship.html')
@@ -97,6 +85,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/step15-standardized.webp flagship-visuals.css flagship.html
+          git add assets/images/step15-standardized.webp flagship-visuals.css flagship.html
           git commit -m "Match Step 15 banner to standardized series"
           git push
