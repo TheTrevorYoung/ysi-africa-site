@@ -21,11 +21,14 @@ jobs:
       - name: Install image converter
         run: python -m pip install --quiet Pillow
 
-      - name: Convert field photos to normal PNG assets
+      - name: Recover legacy JPEGs and save clean PNG assets
         shell: python
         run: |
           from pathlib import Path
-          from PIL import Image
+          from PIL import Image, ImageFile
+
+          # One-time recovery of the old damaged JPEG copies. The published site will use only the clean PNGs.
+          ImageFile.LOAD_TRUNCATED_IMAGES = True
 
           pairs = [
               ('ysi-field-waste-stream.jpg', 'ysi-field-waste-stream.png'),
