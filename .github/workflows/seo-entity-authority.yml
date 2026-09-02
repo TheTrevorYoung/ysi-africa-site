@@ -21,24 +21,26 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           p = Path('index.html')
           text = p.read_text(encoding='utf-8')
           marker = '        "sameAs": ["https://www.linkedin.com/company/shea-salone/"],\n        "description":'
-          addition = '''        "sameAs": ["https://www.linkedin.com/company/shea-salone/"],
-        "founder": {
-          "@type": "Person",
-          "name": "Trevor Young",
-          "sameAs": ["https://www.linkedin.com/in/trevor-young-184b0017"]
-        },
-        "subjectOf": {
-          "@type": "NewsArticle",
-          "headline": "Young Volunteers Clear 100 Days of Plastic Waste from Freetown’s Lumley Beach in Fight Against Pollution",
-          "url": "https://southafricatoday.net/africa/young-volunteers-clear-100-days-of-plastic-waste-from-freetowns-lumley-beach-in-fight-against-pollution/",
-          "datePublished": "2026-04-12",
-          "publisher": {"@type": "Organization", "name": "South Africa Today"}
-        },
-        "description":'''
+          lines = [
+              '        "sameAs": ["https://www.linkedin.com/company/shea-salone/"],',
+              '        "founder": {',
+              '          "@type": "Person",',
+              '          "name": "Trevor Young",',
+              '          "sameAs": ["https://www.linkedin.com/in/trevor-young-184b0017"]',
+              '        },',
+              '        "subjectOf": {',
+              '          "@type": "NewsArticle",',
+              '          "headline": "Young Volunteers Clear 100 Days of Plastic Waste from Freetown’s Lumley Beach in Fight Against Pollution",',
+              '          "url": "https://southafricatoday.net/africa/young-volunteers-clear-100-days-of-plastic-waste-from-freetowns-lumley-beach-in-fight-against-pollution/",',
+              '          "datePublished": "2026-04-12",',
+              '          "publisher": {"@type": "Organization", "name": "South Africa Today"}',
+              '        },',
+              '        "description":'
+          ]
+          addition = '\n'.join(lines)
           if '"founder": {' not in text:
               if marker not in text:
                   raise SystemExit('Expected schema marker not found')
