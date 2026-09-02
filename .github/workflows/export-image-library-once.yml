@@ -1,0 +1,32 @@
+name: Export website image library once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/export-image-library-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package canonical website image library
+        run: |
+          test -d assets/images
+          find assets/images -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.svg' \) -print | sort
+      - name: Upload website image library artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ysi-website-image-library
+          path: |
+            assets/images/*.jpg
+            assets/images/*.jpeg
+            assets/images/*.png
+            assets/images/*.webp
+            assets/images/*.gif
+            assets/images/*.svg
+          if-no-files-found: error
+          retention-days: 1
