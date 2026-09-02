@@ -1,4 +1,4 @@
-name: Simplify YSI field photos
+name: Wire simple static YSI field photos
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  simplify-field-photos:
+  wire-static-field-photos:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,37 +18,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install image converter
-        run: python -m pip install --quiet Pillow
-
-      - name: Recover legacy JPEGs and save clean PNG assets
-        shell: python
+      - name: Verify clean static photo assets
         run: |
-          from pathlib import Path
-          from PIL import Image, ImageFile
+          test -s assets/ysi-field-waste-stream.webp
+          test -s assets/ysi-field-collection-logistics.webp
+          file assets/ysi-field-waste-stream.webp
+          file assets/ysi-field-collection-logistics.webp
+          file assets/ysi-field-waste-stream.webp | grep -qi webp
+          file assets/ysi-field-collection-logistics.webp | grep -qi webp
 
-          # One-time recovery of the old damaged JPEG copies. The published site will use only the clean PNGs.
-          ImageFile.LOAD_TRUNCATED_IMAGES = True
-
-          pairs = [
-              ('ysi-field-waste-stream.jpg', 'ysi-field-waste-stream.png'),
-              ('ysi-field-collection-logistics.jpg', 'ysi-field-collection-logistics.png'),
-          ]
-
-          for source_name, output_name in pairs:
-              source = Path('assets') / source_name
-              output = Path('assets') / output_name
-              with Image.open(source) as im:
-                  im.load()
-                  rgb = im.convert('RGB')
-                  rgb.save(output, format='PNG', optimize=True)
-              with Image.open(output) as check:
-                  check.verify()
-              if output.stat().st_size < 5000:
-                  raise SystemExit(f'{output}: unexpectedly small')
-              print(output, output.stat().st_size)
-
-      - name: Use direct static PNG photos in HTML
+      - name: Point HTML directly to static WebP files
         shell: python
         run: |
           import re
@@ -57,29 +36,33 @@ jobs:
           targets = [
               (
                   'index.html',
-                  'assets/ysi-field-waste-stream.png',
+                  'assets/ysi-field-waste-stream.webp',
                   'Mixed coastal waste documented during Lumley Beach field cleanup work in Freetown'
               ),
               (
                   'flagship.html',
-                  'assets/ysi-field-collection-logistics.png',
+                  'assets/ysi-field-collection-logistics.webp',
                   'Waste collection tricycle documented during Lumley Beach field operations in Freetown'
               ),
           ]
 
-          for html_name, image_src, alt in targets:
-              path = Path(html_name)
-              html = path.read_text()
+          for html_name, src, alt in targets:
+              p = Path(html_name)
+              html = p.read_text()
               pattern = r'(<figure class="field-mosaic">\s*)<img\b[^>]*>'
-              replacement = rf'\1<img src="{image_src}" loading="lazy" alt="{alt}">'
+              replacement = rf'\1<img src="{src}" loading="lazy" alt="{alt}">'
               html, count = re.subn(pattern, replacement, html, count=1, flags=re.S)
               if count != 1:
                   raise SystemExit(f'{html_name}: field image replacement failed')
-              html = re.sub(r'field-photos\.css\?v=[^"\']+', 'field-photos.css?v=20260902simple1', html)
-              html = re.sub(r'script\.js\?v=[^"\']+', 'script.js?v=20260902simple1', html)
-              path.write_text(html)
+              html = re.sub(r'field-photos\.css\?v=[^"\']+', 'field-photos.css?v=20260902static1', html)
+              html = re.sub(r'script\.js\?v=[^"\']+', 'script.js?v=20260902static1', html)
+              if 'data:image/' in html:
+                  raise SystemExit(f'{html_name}: inline field image data remains')
+              if f'src="{src}"' not in html:
+                  raise SystemExit(f'{html_name}: direct static photo reference missing')
+              p.write_text(html)
 
-      - name: Remove all field-photo JavaScript swapping
+      - name: Remove field-photo JavaScript entirely
         shell: python
         run: |
           from pathlib import Path
@@ -114,12 +97,12 @@ jobs:
           """
           Path('script.js').write_text(script)
 
-      - name: Use simple static photo CSS
+      - name: Use simple static image CSS
         shell: python
         run: |
           from pathlib import Path
 
-          css = """/* Simple static photography: same asset pattern as the 16-step graphics. */
+          css = """/* Simple static photography, matching the 16-step asset approach. */
           .field-hero-image{
             width:100%;
             aspect-ratio:1.44/1;
@@ -166,43 +149,36 @@ jobs:
           """
           Path('field-photos.css').write_text(css)
 
-      - name: Verify simple static photo wiring
+      - name: Verify no old photo machinery remains
         shell: python
         run: |
           from pathlib import Path
-          from PIL import Image
-
-          checks = [
-              ('index.html', 'assets/ysi-field-waste-stream.png'),
-              ('flagship.html', 'assets/ysi-field-collection-logistics.png'),
-          ]
-          for html_name, src in checks:
-              html = Path(html_name).read_text()
-              if f'src="{src}"' not in html:
-                  raise SystemExit(f'{html_name}: direct PNG reference missing')
-              if 'data:image/' in html:
-                  raise SystemExit(f'{html_name}: old inline image data still present')
 
           script = Path('script.js').read_text()
-          forbidden = ['homepageFieldPhoto', 'flagshipFieldPhoto', 'setFieldEvidencePhoto', 'fieldPhotoStyles']
-          for token in forbidden:
+          for token in ('homepageFieldPhoto', 'flagshipFieldPhoto', 'setFieldEvidencePhoto', 'fieldPhotoStyles'):
               if token in script:
-                  raise SystemExit(f'script.js: old photo-swapping code remains: {token}')
+                  raise SystemExit(f'old field-photo JS remains: {token}')
 
-          for name in ('ysi-field-waste-stream.png', 'ysi-field-collection-logistics.png'):
-              p = Path('assets') / name
-              with Image.open(p) as im:
-                  im.verify()
-              print('verified', name, p.stat().st_size)
+          css = Path('field-photos.css').read_text()
+          if '.field-mosaic::before' in css or 'display:none' in css:
+              raise SystemExit('old field-photo CSS overlay/hide rule remains')
 
-      - name: Commit simple static field photos
+          homepage = Path('index.html').read_text()
+          flagship = Path('flagship.html').read_text()
+          if 'assets/ysi-field-waste-stream.webp' not in homepage:
+              raise SystemExit('homepage static WebP missing')
+          if 'assets/ysi-field-collection-logistics.webp' not in flagship:
+              raise SystemExit('flagship static WebP missing')
+          print('simple static photo wiring verified')
+
+      - name: Commit simple static photo wiring
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ysi-field-waste-stream.png assets/ysi-field-collection-logistics.png index.html flagship.html script.js field-photos.css
+          git add index.html flagship.html script.js field-photos.css
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Use simple static PNG field photos like 16-step graphics"
+            git commit -m "Wire clean field photos like 16-step graphics"
             git push
           fi
