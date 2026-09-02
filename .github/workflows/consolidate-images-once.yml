@@ -1,0 +1,167 @@
+name: Consolidate website images once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/consolidate-images-once.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ysi-image-library-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Consolidate visual assets and rewrite references
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+
+          root = Path('.')
+          dest = Path('assets/images')
+          dest.mkdir(parents=True, exist_ok=True)
+          image_exts = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'}
+
+          images = []
+          for p in root.rglob('*'):
+              if not p.is_file():
+                  continue
+              if '.git' in p.parts:
+                  continue
+              if p.suffix.lower() not in image_exts:
+                  continue
+              if p.parent == dest:
+                  continue
+              images.append(p)
+
+          mapping = {}
+          occupied = {p.name: p for p in dest.iterdir() if p.is_file()}
+          for src in sorted(images, key=lambda x: x.as_posix()):
+              target = dest / src.name
+              if target.exists() and target.resolve() != src.resolve():
+                  if target.read_bytes() == src.read_bytes():
+                      subprocess.run(['git', 'rm', '-f', src.as_posix()], check=True)
+                      mapping[src.as_posix()] = target.as_posix()
+                      continue
+                  raise SystemExit(f'Image filename collision: {src} -> {target}')
+              if src.name in occupied and occupied[src.name] != target:
+                  raise SystemExit(f'Image basename collision: {src.name}')
+              target.parent.mkdir(parents=True, exist_ok=True)
+              subprocess.run(['git', 'mv', src.as_posix(), target.as_posix()], check=True)
+              mapping[src.as_posix()] = target.as_posix()
+              occupied[src.name] = target
+
+          # Rewrite exact paths first. This updates HTML, CSS, JS, metadata,
+          # documentation and workflows that refer to images that already exist.
+          text_candidates = []
+          for p in root.rglob('*'):
+              if not p.is_file() or '.git' in p.parts or p.suffix.lower() in image_exts:
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              text_candidates.append((p, text))
+
+          asset_image_pattern = re.compile(
+              r'(?<!assets/images/)assets/(?!images/)([A-Za-z0-9_./-]+\.(?:jpe?g|png|webp|gif|svg))',
+              re.IGNORECASE,
+          )
+
+          for p, original in text_candidates:
+              updated = original
+              for old, new in sorted(mapping.items(), key=lambda kv: len(kv[0]), reverse=True):
+                  updated = updated.replace(old, new)
+
+              # Enforce the canonical image folder for future image filenames in
+              # workflows or source files even when that output file does not yet exist.
+              updated = asset_image_pattern.sub(r'assets/images/\1', updated)
+
+              # favicon.svg was historically referenced from the repository root.
+              if 'favicon.svg' in mapping:
+                  updated = updated.replace('href="favicon.svg"', 'href="assets/images/favicon.svg"')
+                  updated = updated.replace("href='favicon.svg'", "href='assets/images/favicon.svg'")
+
+              if updated != original:
+                  p.write_text(updated, encoding='utf-8')
+
+          readme = dest / 'README.md'
+          readme.write_text(
+              '# YSI Africa Website Image Library\n\n'
+              'This is the canonical folder for all visual image assets used by ysiafrica.org.\n\n'
+              '## Rule\n'
+              'All website JPG, JPEG, PNG, WEBP, GIF and SVG files belong in `assets/images/`. '
+              'Pages, stylesheets, metadata and site automation should reference images from this folder.\n\n'
+              'Do not create new website image files directly in the repository root or directly under `assets/`.\n',
+              encoding='utf-8'
+          )
+
+          print(f'Moved/consolidated {len(mapping)} image files into {dest}.')
+          for old, new in mapping.items():
+              print(f'{old} -> {new}')
+          PY
+
+      - name: Verify no image files remain outside canonical folder
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          exts={'.jpg','.jpeg','.png','.webp','.gif','.svg'}
+          bad=[]
+          for p in Path('.').rglob('*'):
+              if p.is_file() and '.git' not in p.parts and p.suffix.lower() in exts and p.parent != Path('assets/images'):
+                  bad.append(p.as_posix())
+          if bad:
+              print('Image files still outside assets/images/:')
+              print('\n'.join(bad))
+              raise SystemExit(1)
+          print('Verified: all website image files are in assets/images/.')
+          PY
+
+      - name: Verify source references do not use legacy asset image paths
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          pattern=re.compile(r'assets/(?!images/)[A-Za-z0-9_./-]+\.(?:jpe?g|png|webp|gif|svg)', re.I)
+          hits=[]
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or '.git' in p.parts or p.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif','.svg'}:
+                  continue
+              try: text=p.read_text(encoding='utf-8')
+              except Exception: continue
+              for m in pattern.finditer(text):
+                  hits.append(f'{p}:{m.group(0)}')
+          if hits:
+              print('Legacy image references remain:')
+              print('\n'.join(hits[:100]))
+              raise SystemExit(1)
+          print('Verified: no legacy assets/<image> references remain.')
+          PY
+
+      - name: Remove one-time workflow and commit migration
+        shell: bash
+        run: |
+          rm -f .github/workflows/consolidate-images-once.yml
+          git config user.name "YSI Africa Site Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No migration changes to commit."
+            exit 0
+          fi
+          git commit -m "Consolidate website images into canonical folder"
+          git push
