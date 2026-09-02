@@ -2,7 +2,8 @@ name: Install approved Step 15 and 16 visuals
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '.image-parts3/**'
 
@@ -13,59 +14,82 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Assemble and install approved visuals
+
+      - name: Assemble approved visuals when complete
+        shell: python
+        run: |
+          from pathlib import Path
+          import base64
+          import re
+          import shutil
+
+          part_dir = Path('.image-parts3')
+          required = [
+              *(part_dir / f'step15-{i:02d}.b64' for i in range(1, 6)),
+              *(part_dir / f'step16-{i:02d}.b64' for i in range(1, 7)),
+          ]
+          missing = [str(p) for p in required if not p.exists()]
+          if missing:
+              print('Waiting for remaining image parts:')
+              print('\n'.join(missing))
+              raise SystemExit(0)
+
+          def decode_series(pattern, output):
+              chunks = []
+              for path in sorted(part_dir.glob(pattern)):
+                  chunks.append(''.join(path.read_text().split()))
+              raw = base64.b64decode(''.join(chunks), validate=True)
+              output.parent.mkdir(parents=True, exist_ok=True)
+              output.write_bytes(raw)
+              if output.stat().st_size == 0:
+                  raise SystemExit(f'Empty assembled image: {output}')
+              print('Created', output, output.stat().st_size)
+
+          decode_series('step15-*.b64', Path('assets/images/step15-final.webp'))
+          decode_series('step16-*.b64', Path('assets/images/step16-final.webp'))
+
+          css_path = Path('flagship-visuals.css')
+          css = css_path.read_text()
+          marker = '/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */'
+          block = '''/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
+          .step-thumb.step-15,
+          .detail-visual.step-15 {
+            background-image:url("assets/images/step15-final.webp?v=20260902final");
+            background-size:cover;
+            background-position:center;
+          }
+          .network-canvas,
+          .step-thumb.step-16 {
+            background-image:url("assets/images/step16-final.webp?v=20260902final");
+            background-size:cover;
+            background-position:center;
+          }
+          '''
+          if marker in css:
+              css = re.sub(
+                  r'/\* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 \*/.*?\.step-thumb\.step-16 \{.*?\}\s*',
+                  '',
+                  css,
+                  flags=re.S,
+              )
+          css_path.write_text(css.rstrip() + '\n\n' + block)
+
+          for folder in (Path('.image-parts'), Path('.image-parts2'), Path('.image-parts3')):
+              if folder.exists():
+                  shutil.rmtree(folder)
+
+      - name: Commit completed visuals
         shell: bash
         run: |
-          set -euo pipefail
-          required=(
-            .image-parts3/step15-01.b64
-            .image-parts3/step15-02.b64
-            .image-parts3/step15-03.b64
-            .image-parts3/step15-04.b64
-            .image-parts3/step15-05.b64
-            .image-parts3/step16-01.b64
-            .image-parts3/step16-02.b64
-            .image-parts3/step16-03.b64
-            .image-parts3/step16-04.b64
-            .image-parts3/step16-05.b64
-            .image-parts3/step16-06.b64
-          )
-          for f in "${required[@]}"; do
-            if [ ! -f "$f" ]; then
-              echo "Waiting for $f"
-              exit 0
-            fi
-          done
-          mkdir -p assets/images
-          cat .image-parts3/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/images/step15-final.webp
-          cat .image-parts3/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/images/step16-final.webp
-          test -s assets/images/step15-final.webp
-          test -s assets/images/step16-final.webp
-          cat >> flagship-visuals.css <<'CSS'
-
-/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
-.step-thumb.step-15,
-.detail-visual.step-15 {
-  background-image:url("assets/images/step15-final.webp?v=20260902final");
-  background-size:cover;
-  background-position:center;
-}
-.network-canvas,
-.step-thumb.step-16 {
-  background-image:url("assets/images/step16-final.webp?v=20260902final");
-  background-size:cover;
-  background-position:center;
-}
-CSS
-          rm -rf .image-parts .image-parts2 .image-parts3
           git config user.name "YSI Website Automation"
           git config user.email "actions@users.noreply.github.com"
           git add -A -- ':!.github/workflows'
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No completed visual changes to commit"
             exit 0
           fi
           git commit -m "Install approved Step 15 and Step 16 visuals"
