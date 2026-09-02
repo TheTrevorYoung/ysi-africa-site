@@ -1,4 +1,4 @@
-/* Stable documentary photography. Keep public-facing field photos on approved, verified assets. */
+/* Simple static photography, matching the 16-step asset approach. */
 .field-hero-image{
   width:100%;
   aspect-ratio:1.44/1;
@@ -21,9 +21,21 @@
 .field-proof strong{color:#075c37;text-transform:uppercase;letter-spacing:.08em;font-size:.84rem;}
 .field-proof span{color:#59645e;font-size:.95rem;}
 
-.field-mosaic{margin:0;border:1px solid #cbd8d0;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(22,45,35,.10);}
-.field-mosaic img{display:block;width:100%;aspect-ratio:1.44/1;object-fit:cover;object-position:center;background:#eef3ef;}
-.field-mosaic::before{display:none!important;content:none!important;}
+.field-mosaic{
+  margin:0;
+  border:1px solid #cbd8d0;
+  border-radius:24px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 18px 45px rgba(22,45,35,.10);
+}
+
+.field-mosaic img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+
 .field-mosaic figcaption{padding:14px 18px 16px;color:#59645e;font-size:.9rem;line-height:1.45;}
 
 @media (max-width:780px){
