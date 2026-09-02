@@ -21,16 +21,11 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            .image-parts2/step15-01.b64
-            .image-parts2/step15-02.b64
-            .image-parts2/step15-03.b64
-            .image-parts2/step15-04.b64
-            .image-parts2/step16-01.b64
-            .image-parts2/step16-02.b64
-            .image-parts2/step16-03.b64
-            .image-parts2/step16-04.b64
-            .image-parts2/step16-05.b64
-            .image-parts2/step16-06.b64
+            .image-parts2/final15-01.b64
+            .image-parts2/final15-02.b64
+            .image-parts2/final16-01.b64
+            .image-parts2/final16-02.b64
+            .image-parts2/final16-03.b64
           )
           for f in "${required[@]}"; do
             if [ ! -f "$f" ]; then
@@ -38,8 +33,8 @@ jobs:
               exit 0
             fi
           done
-          cat .image-parts2/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step15-final.webp
-          cat .image-parts2/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step16-final.webp
+          cat .image-parts2/final15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step15-final.webp
+          cat .image-parts2/final16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step16-final.webp
           rm -rf .image-parts .image-parts2
           rm -f .github/workflows/assemble-step-images.yml .github/workflows/assemble-step-images2.yml
           git config user.name "YSI Website Automation"
