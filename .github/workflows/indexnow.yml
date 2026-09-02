@@ -6,6 +6,7 @@ on:
     paths:
       - 'index.html'
       - 'flagship.html'
+      - 'evidence.html'
       - 'sitemap.xml'
       - '92477f15b37e86f34eb955bb9b1a59e3.txt'
       - '.github/workflows/indexnow.yml'
@@ -35,7 +36,7 @@ jobs:
           echo "IndexNow verification key did not become reachable."
           exit 1
 
-      - name: Submit homepage and flagship page to IndexNow
+      - name: Submit YSI pages to IndexNow
         env:
           INDEXNOW_KEY: 92477f15b37e86f34eb955bb9b1a59e3
         shell: bash
@@ -48,7 +49,8 @@ jobs:
               "keyLocation": "https://ysiafrica.org/92477f15b37e86f34eb955bb9b1a59e3.txt",
               "urlList": [
                   "https://ysiafrica.org/",
-                  "https://ysiafrica.org/flagship.html"
+                  "https://ysiafrica.org/flagship.html",
+                  "https://ysiafrica.org/evidence.html"
               ]
           }
           with open('/tmp/indexnow.json', 'w', encoding='utf-8') as f:
