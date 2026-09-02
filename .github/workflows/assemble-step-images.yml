@@ -1,0 +1,52 @@
+name: Assemble approved Step 15 and 16 images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.image-parts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Assemble when all image parts are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            .image-parts/step15-01.b64
+            .image-parts/step15-02.b64
+            .image-parts/step15-03.b64
+            .image-parts/step15-04.b64
+            .image-parts/step16-01.b64
+            .image-parts/step16-02.b64
+            .image-parts/step16-03.b64
+            .image-parts/step16-04.b64
+            .image-parts/step16-05.b64
+          )
+          for f in "${required[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "Waiting for $f"
+              exit 0
+            fi
+          done
+          cat .image-parts/step15-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step15-final.webp
+          cat .image-parts/step16-*.b64 | tr -d '\n\r ' | base64 --decode > assets/step16-final.webp
+          rm -rf .image-parts
+          rm -f .github/workflows/assemble-step-images.yml
+          git config user.name "YSI Website Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Replace Step 15 and Step 16 website visuals"
+          git push
