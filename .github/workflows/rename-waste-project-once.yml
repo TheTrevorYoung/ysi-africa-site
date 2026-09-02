@@ -1,0 +1,41 @@
+name: One-time waste project menu rename
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rename-waste-project-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rename menu label
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = ['index.html','about.html','flagship.html','aberdeen.html','evidence.html']
+          old = '>Freetown Circular Waste Project<'
+          new = '>Waste Project<'
+          for name in files:
+              p = Path(name)
+              s = p.read_text()
+              if old not in s:
+                  raise SystemExit(f'Expected menu label not found in {name}')
+              p.write_text(s.replace(old, new))
+          PY
+      - name: Remove one-time workflow
+        run: rm .github/workflows/rename-waste-project-once.yml
+      - name: Commit rename
+        run: |
+          git config user.name "YSI Africa Site Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html about.html flagship.html aberdeen.html evidence.html .github/workflows/rename-waste-project-once.yml
+          git commit -m "Rename waste project menu label"
+          git push
