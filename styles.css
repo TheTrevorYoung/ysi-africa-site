@@ -21,3 +21,51 @@
 .flagship-field-evidence{background:#fff;border-top:1px solid #edf2ed;border-bottom:1px solid #edf2ed}
 @media(max-width:1040px){.field-evidence-grid{grid-template-columns:1fr;gap:28px}.field-evidence-copy>p:not(.eyebrow){max-width:800px}}
 @media(max-width:760px){.field-evidence{padding:62px 0}.field-mosaic{border-radius:14px}.field-mosaic figcaption{font-size:.68rem}}
+
+/* TEMPORARY SECONDARY IMAGE PAUSE — 2026-09-03
+   User-approved temporary presentation rule while image-source problems are audited.
+   Keep ONLY the main homepage hero photograph visible. All other image media and
+   image-only containers are suppressed so no blurry/missing placeholders remain. */
+
+img{display:none!important;}
+
+.hero#top .hero-photo > img.field-hero-image{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+
+figure:not(.hero-photo),
+.hero-proof-rail,
+.field-mosaic,
+.field-gallery,
+.field-shot,
+.story-photo,
+.hero-field-photo,
+.system-figure,
+.visual-step > .step-imae,
+.detail-visual,
+.network-canvas{
+  display:none!important;
+  margin:0!important;
+  padding:0!important;
+  min-height:0!important;
+  height:0!important;
+  border:0!important;
+}
+
+.field-evidence-grid,
+.story-grid,
+.flagship-hero-grid{
+  grid-template-columns:1fr!important;
+}
+
+.field-evidence-copy,
+.story-copy,
+.flagship-hero-copy{
+  max-width:900px;
+}
