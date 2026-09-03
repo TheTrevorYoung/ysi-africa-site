@@ -1,0 +1,29 @@
+name: Export current final website images once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-final-images-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify final production images
+        run: |
+          test -s assets/images/step15-final.webp
+          test -s assets/images/step16-final.webp
+      - name: Upload final production images
+        uses: actions/upload-artifact@v4
+        with:
+          name: ysi-final-step-images
+          path: |
+            assets/images/step15-final.webp
+            assets/images/step16-final.webp
+          if-no-files-found: error
+          retention-days: 1
