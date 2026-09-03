@@ -1,0 +1,79 @@
+name: Convert production images to JPG
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/convert-production-images-to-jpg.yml
+permissions:
+  contents: write
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Convert production WebP images to JPEG and repoint site
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import re
+
+          root = Path('.')
+          images = root / 'assets' / 'images'
+          version = '20260903jpgfix1'
+
+          # Convert every production WebP image to a same-basename JPEG fallback.
+          for src in images.glob('*.webp'):
+              dst = src.with_suffix('.jpg')
+              im = Image.open(src).convert('RGB')
+              im.save(dst, 'JPEG', quality=90, optimize=True, progressive=True)
+
+          # Repoint all local production WebP references to JPEG.
+          for p in list(root.glob('*.html')) + [root/'field-photos.css', root/'flagship-visuals.css', root/'script.js']:
+              if not p.exists():
+                  continue
+              text = p.read_text(encoding='utf-8')
+              text = re.sub(r'(/assets/images/[A-Za-z0-9._-]+)\.webp', r'\1.jpg', text)
+              text = re.sub(r'(assets/images/[A-Za-z0-9._-]+)\.webp', r'\1.jpg', text)
+              # Fresh version for local image references already carrying a version.
+              text = re.sub(r'(/assets/images/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|svg))\?v=[A-Za-z0-9_-]+', rf'\1?v={version}', text)
+              p.write_text(text, encoding='utf-8')
+
+          # The field evidence image seen immediately after the hero must not wait on lazy loading.
+          index = root / 'index.html'
+          text = index.read_text(encoding='utf-8')
+          text = text.replace('src="/assets/images/ysi-field-waste-stream.jpg" loading="lazy"', f'src="/assets/images/ysi-field-waste-stream.jpg?v={version}" loading="eager" decoding="async" fetchpriority="high"')
+          text = text.replace('src="/assets/images/ysi-field-waste-stream.jpg?v='+version+'" loading="lazy"', 'src="/assets/images/ysi-field-waste-stream.jpg?v='+version+'" loading="eager" decoding="async" fetchpriority="high"')
+          index.write_text(text, encoding='utf-8')
+
+          # Make the same field evidence photos eager on pages where they are principal visual evidence.
+          for name in ['about.html','flagship.html','evidence.html']:
+              p = root / name
+              if not p.exists():
+                  continue
+              text = p.read_text(encoding='utf-8')
+              text = text.replace('loading="lazy"', 'loading="eager"')
+              p.write_text(text, encoding='utf-8')
+
+          # Keep the canonical-image README explicit about browser-safe production derivatives.
+          readme = images / 'README.md'
+          if readme.exists():
+              text = readme.read_text(encoding='utf-8')
+              note = '\n7. Browser-facing photographic and concept references use JPEG production derivatives for maximum rendering compatibility; WebP source copies may remain in this folder as source assets.\n'
+              if 'Browser-facing photographic and concept references use JPEG' not in text:
+                  text += note
+              readme.write_text(text, encoding='utf-8')
+          PY
+
+          rm -f .github/workflows/convert-production-images-to-jpg.yml
+          git config user.name "YSI Website Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Use JPEG production images for reliable rendering"
+          git push
