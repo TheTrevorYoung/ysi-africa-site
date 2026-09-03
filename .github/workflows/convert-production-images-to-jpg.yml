@@ -1,4 +1,4 @@
-name: Convert production images to JPG
+name: Convert field evidence images to JPG
 on:
   push:
     branches:
@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Convert production WebP images to JPEG and repoint site
+      - name: Convert exact field evidence images and repoint pages
         shell: bash
         run: |
           set -euo pipefail
@@ -22,58 +22,35 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-          import re
 
           root = Path('.')
           images = root / 'assets' / 'images'
-          version = '20260903jpgfix1'
+          version = '20260903jpgfix2'
+          targets = ['ysi-field-waste-stream.webp','ysi-field-collection-logistics.webp']
 
-          # Convert every production WebP image to a same-basename JPEG fallback.
-          for src in images.glob('*.webp'):
+          for name in targets:
+              src = images / name
               dst = src.with_suffix('.jpg')
-              im = Image.open(src).convert('RGB')
-              im.save(dst, 'JPEG', quality=90, optimize=True, progressive=True)
+              print('converting', src, src.stat().st_size)
+              im = Image.open(src)
+              print('decoded', name, im.size, im.mode, im.format)
+              im.convert('RGB').save(dst, 'JPEG', quality=92, optimize=True, progressive=True)
 
-          # Repoint all local production WebP references to JPEG.
-          for p in list(root.glob('*.html')) + [root/'field-photos.css', root/'flagship-visuals.css', root/'script.js']:
+          for p in list(root.glob('*.html')) + [root/'script.js']:
               if not p.exists():
                   continue
               text = p.read_text(encoding='utf-8')
-              text = re.sub(r'(/assets/images/[A-Za-z0-9._-]+)\.webp', r'\1.jpg', text)
-              text = re.sub(r'(assets/images/[A-Za-z0-9._-]+)\.webp', r'\1.jpg', text)
-              # Fresh version for local image references already carrying a version.
-              text = re.sub(r'(/assets/images/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|svg))\?v=[A-Za-z0-9_-]+', rf'\1?v={version}', text)
+              text = text.replace('/assets/images/ysi-field-waste-stream.webp', f'/assets/images/ysi-field-waste-stream.jpg?v={version}')
+              text = text.replace('assets/images/ysi-field-waste-stream.webp', f'/assets/images/ysi-field-waste-stream.jpg?v={version}')
+              text = text.replace('/assets/images/ysi-field-collection-logistics.webp', f'/assets/images/ysi-field-collection-logistics.jpg?v={version}')
+              text = text.replace('assets/images/ysi-field-collection-logistics.webp', f'/assets/images/ysi-field-collection-logistics.jpg?v={version}')
+              text = text.replace('loading="lazy"', 'loading="eager"') if p.name in ['index.html','about.html','flagship.html','evidence.html'] else text
               p.write_text(text, encoding='utf-8')
-
-          # The field evidence image seen immediately after the hero must not wait on lazy loading.
-          index = root / 'index.html'
-          text = index.read_text(encoding='utf-8')
-          text = text.replace('src="/assets/images/ysi-field-waste-stream.jpg" loading="lazy"', f'src="/assets/images/ysi-field-waste-stream.jpg?v={version}" loading="eager" decoding="async" fetchpriority="high"')
-          text = text.replace('src="/assets/images/ysi-field-waste-stream.jpg?v='+version+'" loading="lazy"', 'src="/assets/images/ysi-field-waste-stream.jpg?v='+version+'" loading="eager" decoding="async" fetchpriority="high"')
-          index.write_text(text, encoding='utf-8')
-
-          # Make the same field evidence photos eager on pages where they are principal visual evidence.
-          for name in ['about.html','flagship.html','evidence.html']:
-              p = root / name
-              if not p.exists():
-                  continue
-              text = p.read_text(encoding='utf-8')
-              text = text.replace('loading="lazy"', 'loading="eager"')
-              p.write_text(text, encoding='utf-8')
-
-          # Keep the canonical-image README explicit about browser-safe production derivatives.
-          readme = images / 'README.md'
-          if readme.exists():
-              text = readme.read_text(encoding='utf-8')
-              note = '\n7. Browser-facing photographic and concept references use JPEG production derivatives for maximum rendering compatibility; WebP source copies may remain in this folder as source assets.\n'
-              if 'Browser-facing photographic and concept references use JPEG' not in text:
-                  text += note
-              readme.write_text(text, encoding='utf-8')
           PY
 
           rm -f .github/workflows/convert-production-images-to-jpg.yml
           git config user.name "YSI Website Automation"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "Use JPEG production images for reliable rendering"
+          git commit -m "Replace field evidence WebP files with JPEG production images"
           git push
