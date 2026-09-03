@@ -8,8 +8,8 @@ Official website repository for **Young Sustainability Initiative (YSI Africa)**
 
 **Evidence & field work:** https://ysiafrica.org/evidence.html
 
-**Freetown circular waste pilot:** https://ysiafrica.org/flagship.html
+**Waste Project — Phase 0:** https://ysiafrica.org/flagship.html
 
-Current verified public quantitative impact claim: **20,000+ kg of waste removed.**
+Historical YSI public impact claim: **20,000+ kg of waste removed through documented field activity in Freetown.** Field activity is documented; the original mass-calculation record is under reconstruction.
 
-YSI separates documented field work from development-stage concepts and does not present prospective institutions as partners without a real relationship.
+YSI separates verified facts, documented field work, development-stage concepts, technical hypotheses and institutional engagement, and does not present prospective institutions as partners without a real relationship.
