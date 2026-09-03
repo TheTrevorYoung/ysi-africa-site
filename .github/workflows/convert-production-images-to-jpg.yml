@@ -1,4 +1,4 @@
-name: Convert field evidence images to JPG
+name: Restore field evidence JPGs from canonical Drive source
 on:
   push:
     branches:
@@ -8,49 +8,41 @@ on:
 permissions:
   contents: write
 jobs:
-  convert:
+  restore:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Convert exact field evidence images and repoint pages
+      - name: Restore canonical JPEG assets and repoint site
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --quiet pillow
+          curl -L --fail --retry 3 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-fdd4-822f-9e76-8ad64b355a2e/raw?se=2026-09-03T06%3A18%3A36Z&sp=r&sv=2026-02-06&sr=b&scid=b2de8313-8b56-5eea-acf3-2645db8b3455&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-02T21%3A18%3A18Z&ske=2026-09-03T21%3A18%3A18Z&sks=b&skv=2026-02-06&sig=ggm3XdBL2CuQPcQrlII1rI3/WhHEHu91IRdH0Doq0RM%3D' -o assets/images/ysi-field-waste-stream.jpg
+          curl -L --fail --retry 3 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-12fc-822f-a5af-088d002f1b5d/raw?se=2026-09-03T06%3A18%3A51Z&sp=r&sv=2026-02-06&sr=b&scid=45c92683-a54c-52c0-b462-b1d157a10561&skoid=fae15675-a81a-44b5-9d8c-d8445a7c26a2&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-03T05%3A57%3A57Z&ske=2026-09-04T05%3A57%3A57Z&sks=b&skv=2026-02-06&sig=hL6r%2BNclpmH51rYNzjpP%2BEHHKKp6YNAt05VSXSROGoY%3D' -o assets/images/ysi-field-collection-logistics.jpg
+          file assets/images/ysi-field-waste-stream.jpg assets/images/ysi-field-collection-logistics.jpg
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
-
-          root = Path('.')
-          images = root / 'assets' / 'images'
-          version = '20260903jpgfix2'
-          targets = ['ysi-field-waste-stream.webp','ysi-field-collection-logistics.webp']
-
-          for name in targets:
-              src = images / name
-              dst = src.with_suffix('.jpg')
-              print('converting', src, src.stat().st_size)
-              im = Image.open(src)
-              print('decoded', name, im.size, im.mode, im.format)
-              im.convert('RGB').save(dst, 'JPEG', quality=92, optimize=True, progressive=True)
-
-          for p in list(root.glob('*.html')) + [root/'script.js']:
-              if not p.exists():
-                  continue
-              text = p.read_text(encoding='utf-8')
-              text = text.replace('/assets/images/ysi-field-waste-stream.webp', f'/assets/images/ysi-field-waste-stream.jpg?v={version}')
-              text = text.replace('assets/images/ysi-field-waste-stream.webp', f'/assets/images/ysi-field-waste-stream.jpg?v={version}')
-              text = text.replace('/assets/images/ysi-field-collection-logistics.webp', f'/assets/images/ysi-field-collection-logistics.jpg?v={version}')
-              text = text.replace('assets/images/ysi-field-collection-logistics.webp', f'/assets/images/ysi-field-collection-logistics.jpg?v={version}')
-              text = text.replace('loading="lazy"', 'loading="eager"') if p.name in ['index.html','about.html','flagship.html','evidence.html'] else text
-              p.write_text(text, encoding='utf-8')
+          for p in [Path('assets/images/ysi-field-waste-stream.jpg'), Path('assets/images/ysi-field-collection-logistics.jpg')]:
+              im=Image.open(p); im.verify(); print(p, 'OK')
+          version='20260903jpgsource1'
+          for p in list(Path('.').glob('*.html'))+[Path('script.js')]:
+              if not p.exists(): continue
+              text=p.read_text(encoding='utf-8')
+              for old,new in [
+                  ('/assets/images/ysi-field-waste-stream.webp','/assets/images/ysi-field-waste-stream.jpg?v='+version),
+                  ('assets/images/ysi-field-waste-stream.webp','/assets/images/ysi-field-waste-stream.jpg?v='+version),
+                  ('/assets/images/ysi-field-collection-logistics.webp','/assets/images/ysi-field-collection-logistics.jpg?v='+version),
+                  ('assets/images/ysi-field-collection-logistics.webp','/assets/images/ysi-field-collection-logistics.jpg?v='+version),
+              ]: text=text.replace(old,new)
+              if p.name in ['index.html','about.html','flagship.html','evidence.html']:
+                  text=text.replace('loading="lazy"','loading="eager"')
+              p.write_text(text,encoding='utf-8')
           PY
-
           rm -f .github/workflows/convert-production-images-to-jpg.yml
-          git config user.name "YSI Website Automation"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.name 'YSI Website Automation'
+          git config user.email 'actions@users.noreply.github.com'
           git add -A
-          git commit -m "Replace field evidence WebP files with JPEG production images"
+          git commit -m 'Restore valid field evidence JPEGs from canonical source'
           git push
