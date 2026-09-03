@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Assemble approved visuals when complete
-        shell: python
+        shell: python {0}
         run: |
           from pathlib import Path
           import base64
@@ -38,19 +38,21 @@ jobs:
               print('\n'.join(missing))
               raise SystemExit(0)
 
-          def decode_series(pattern, output):
+          def decode_series(pattern, output, expected_size):
               chunks = []
               for path in sorted(part_dir.glob(pattern)):
                   chunks.append(''.join(path.read_text().split()))
               raw = base64.b64decode(''.join(chunks), validate=True)
+              if raw[:4] != b'RIFF' or raw[8:12] != b'WEBP':
+                  raise SystemExit(f'Invalid WebP: {output}')
+              if len(raw) != expected_size:
+                  raise SystemExit(f'Unexpected size for {output}: {len(raw)} != {expected_size}')
               output.parent.mkdir(parents=True, exist_ok=True)
               output.write_bytes(raw)
-              if output.stat().st_size == 0:
-                  raise SystemExit(f'Empty assembled image: {output}')
               print('Created', output, output.stat().st_size)
 
-          decode_series('step15-*.b64', Path('assets/images/step15-final.webp'))
-          decode_series('step16-*.b64', Path('assets/images/step16-final.webp'))
+          decode_series('step15-*.b64', Path('assets/images/step15-final.webp'), 26114)
+          decode_series('step16-*.b64', Path('assets/images/step16-final.webp'), 35986)
 
           css_path = Path('flagship-visuals.css')
           css = css_path.read_text()
@@ -71,7 +73,7 @@ jobs:
           '''
           if marker in css:
               css = re.sub(
-                  r'/\* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 \*/.*?\.step-thumb\.step-16 \{.*?\}\s*',
+                  r'/\* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 \*/.*?\.step-thumb\.step-16\s*\{.*?\}\s*',
                   '',
                   css,
                   flags=re.S,
