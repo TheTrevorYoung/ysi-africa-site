@@ -47,7 +47,7 @@ if (heroPhoto && homeHero) {
   if (!heroImage) {
     heroImage = document.createElement('img');
     heroImage.className = 'field-hero-image';
-    heroImage.src = '/assets/images/ysi-hero-real.jpg?v=20260903imgfix3';
+    heroImage.src = '/assets/images/ysi-hero-real.jpg';
     heroImage.alt = 'Documentary field cleanup work at Lumley Beach in Freetown';
     heroImage.loading = 'eager';
     heroImage.decoding = 'async';
@@ -225,7 +225,7 @@ if (verifiedSection && !document.getElementById('impact-dossier')) {
         <p>This is the current evidence-chain status. YSI is publishing what is known and what still needs reconstruction rather than filling gaps with assumptions.</p>
       </div>
       <div class="dossier-grid">
-        <article><b>01 · Location</b><strong>Lumley Beach, Freetown</strong><span>Documented YSI field activity and photography.</span></article>
+        <article><b>01 · Location</b><strong>Lumley Beach, Freetown</strong><span>Documented YSI field activity and operating records.</span></article>
         <article><b>02 · Activity</b><strong>Repeated cleanup and waste handling</strong><span>Collection, movement, sorting and field logistics are documented.</span></article>
         <article><b>03 · Period</b><strong>Calculation period under reconstruction</strong><span>The exact start/end dates used for the 20,000+ kg calculation have not yet been recovered.</span></article>
         <article><b>04 · Measurement method</b><strong>Original calculation record not yet recovered</strong><span>The historical mass-calculation source and method are being reconstructed.</span></article>
