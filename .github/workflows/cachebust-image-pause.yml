@@ -1,0 +1,35 @@
+name: Cache-bust temporary image pause
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cachebust-image-pause.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Force all public pages to load the image-pause stylesheet release
+        run: |
+          set -e
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for p in Path('.').glob('*.html'):
+              s = p.read_text(encoding='utf-8')
+              s2 = re.sub(r'href="styles\.css(?:\?[^\"]*)?"', 'href="styles.css?v=20260903-imagepause1"', s)
+              if s2 != s:
+                  p.write_text(s2, encoding='utf-8')
+          PY
+          rm -f .github/workflows/cachebust-image-pause.yml
+          git config user.name 'YSI Website Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Force-load temporary image pause across site'
+          git push
