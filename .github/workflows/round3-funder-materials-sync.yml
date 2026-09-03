@@ -1,0 +1,63 @@
+name: Round 3 funder materials sync
+
+on:
+  push:
+    paths:
+      - '.github/workflows/round3-funder-materials-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Synchronize current forwardable material links and copy
+        shell: python
+        run: |
+          from pathlib import Path
+
+          replacements = {
+              'funders.html': [
+                  ('Identity, legal status, operating model, impact position, institutional controls and current due-diligence items.',
+                   'Identity, legal status, environmental focus, historical impact position, current projects and institutional contact.'),
+                  ('assets/docs/YSI_Africa_Flagship_Pilot_Concept_Note_September_2026.pdf',
+                   'assets/docs/YSI_Africa_Waste_Project_Phase_0_Concept_Note_September_2026.pdf'),
+                  ('PDF · Development-stage concept', 'PDF · Current Phase 0 concept note'),
+                  ('Waste Project concept note', 'Waste Project Phase 0 — Evidence & Operational Design'),
+                  ('A concise concept note describing the proposed operating logic and evidence-first funding-readiness position. The live website controls where later strategy has become more specific.',
+                   'A concise current concept note aligned with the non-thermal Phase 0 scope, decision gates and evidence-first operating logic.'),
+              ],
+              'governance.html': [
+                  ('assets/docs/YSI_Africa_Flagship_Pilot_Concept_Note_September_2026.pdf',
+                   'assets/docs/YSI_Africa_Waste_Project_Phase_0_Concept_Note_September_2026.pdf'),
+                  ('Flagship pilot concept note', 'Waste Project Phase 0 concept note'),
+                  ('Development-stage operating concept and funding-readiness framework.',
+                   'Current non-thermal Evidence & Operational Design concept and decision framework.'),
+              ],
+          }
+
+          changed = []
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text(encoding='utf-8')
+              original = text
+              for old, new in pairs:
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+                  changed.append(filename)
+
+          print('Changed:', ', '.join(changed) if changed else 'none')
+      - name: Commit synchronized copy
+        run: |
+          if git diff --quiet; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git config user.name 'YSI Website Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add funders.html governance.html
+          git commit -m 'Synchronize current funder materials and Phase 0 links'
+          git push
