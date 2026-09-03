@@ -1,0 +1,114 @@
+name: Complete permanent secondary image purge
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/purge-secondary-images-v3.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Delete all site imagery except homepage hero
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+          def sub(s,p,r=''):
+              return re.sub(p,r,s,flags=re.I|re.S)
+
+          for p in root.glob('*.html'):
+              s=p.read_text(encoding='utf-8')
+              s=sub(s,r'\s*<link\b[^>]*href=["\'][^"\']*(?:image-pause|field-photos|flagship-visuals)\.css[^"\']*["\'][^>]*>')
+              if p.name=='index.html':
+                  s=sub(s,r'<div\b[^>]*class=["\'][^"\']*\bhero-proof-rail\b[^"\']*["\'][^>]*>.*?</div>')
+                  m=re.search(r'<figure\b[^>]*class=["\'][^"\']*\bhero-photo\b[^"\']*["\'][^>]*>.*?</figure>',s,re.I|re.S)
+                  if not m: raise SystemExit('homepage hero missing')
+                  ph='<!--HERO_ONLY-->'
+                  s=s[:m.start()]+ph+s[m.end():]
+                  s=sub(s,r'<figure\b[^>]*>.*?</figure>')
+                  s=sub(s,r'<img\b[^>]*>')
+                  hero='<figure class="hero-photo"><img class="field-hero-image" src="/assets/images/ysi-hero-real.jpg" alt="Documentary field cleanup work at Lumley Beach in Freetown" loading="eager" decoding="async" fetchpriority="high"><figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown.</figcaption></figure>'
+                  s=s.replace(ph,hero)
+              else:
+                  s=sub(s,r'<figure\b[^>]*>.*?</figure>')
+                  s=sub(s,r'<img\b[^>]*>')
+                  s=sub(s,r'<meta\b[^>]*(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*>')
+              s=s.replace('class="wrap field-evidence-grid"','class="wrap"').replace('class="wrap story-grid"','class="wrap"')
+              for cls in ('hero-proof-rail','field-mosaic','field-gallery','field-shot','story-photo','hero-field-photo','system-figure','detail-visual','network-canvas'):
+                  s=sub(s,rf'<(?:div|section|aside)\b[^>]*class=["\'][^"\']*\b{cls}\b[^"\']*["\'][^>]*>\s*</(?:div|section|aside)>')
+              if p.name=='technical-concept.html':
+                  s=s.replace('Conditional longer-term technical concept illustrations','Conditional longer-term technical concepts')
+                  s=s.replace('<strong>Concept illustrations only.</strong> These images do not depict equipment or facilities currently owned or operated by YSI Africa.','<strong>Conditional concepts only.</strong> This sequence does not represent equipment or facilities currently owned or operated by YSI Africa.')
+                  s=s.replace('class="visual-step-grid"','class="step-text-grid"').replace('class="visual-step is-loop"','class="step-text-card"').replace('class="visual-step is-network"','class="step-text-card"').replace('class="visual-step"','class="step-text-card"').replace('class="visual-step-copy"','class="step-text-copy"')
+                  s=sub(s,r'\s*\.step-image\{[^{}]*\}')
+                  s=s.replace('</style>','\n.step-text-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.step-text-card{border:1px solid var(--line);border-radius:16px;padding:22px;background:#fff;min-height:180px}.step-text-card b{display:block;color:var(--green2);font-size:.72rem;letter-spacing:.1em;margin-bottom:14px}.step-text-card h3{margin:0 0 9px;color:var(--green);font-size:1.08rem}.step-text-card p{margin:0;color:var(--muted);font-size:.86rem}@media(max-width:1040px){.step-text-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.step-text-grid{grid-template-columns:1fr}}\n</style>',1)
+              if p.name=='flagship.html':
+                  s=s.replace('The original 16-step architecture is preserved separately.','The longer-term 16-step architecture is preserved separately as text-only technical reference.')
+                  s=s.replace('The detailed longer-term sequence — including the approved Step 15 and Step 16 visuals — has been moved out of the main project narrative. It remains available as a technical appendix for reviewers who want to inspect the full conditional architecture.','The detailed longer-term sequence has been moved out of the main project narrative. It remains available as a text-only technical appendix for reviewers who want to inspect the full conditional architecture.')
+              for sel in ('story-photo','field-gallery','field-shot','hero-field-photo','step-image'):
+                  s=sub(s,rf'\.{sel}(?:\s+(?:img|figcaption))?\{{[^{{}}]*\}}')
+              p.write_text(s,encoding='utf-8')
+
+          sp=root/'script.js'; s=sp.read_text(encoding='utf-8')
+          marker='  // Lightweight visual proof rail:'
+          a=s.find(marker)
+          if a!=-1:
+              b=s.find('\n  }\n}',a)
+              if b==-1: raise SystemExit('secondary JS block end not found')
+              s=s[:a]+s[b+len('\n  }'):]
+          s='\n'.join(line for line in s.splitlines() if '.hero-proof-rail' not in line)+'\n'
+          if 'ysi-field-waste-stream' in s or 'ysi-field-collection-logistics' in s or 'hero-proof-rail' in s:
+              raise SystemExit('secondary image JS residue remains')
+          sp.write_text(s,encoding='utf-8')
+
+          st=root/'styles.css'; s=st.read_text(encoding='utf-8')
+          s=re.sub(r'\n/\* TEMPORARY SECONDARY IMAGE PAUSE[\s\S]*\Z','\n',s)
+          for sel in ('field-mosaic','system-figure','hero-proof-rail'):
+              s=re.sub(rf'\.{sel}(?:\s+(?:img|figcaption))?\{{[^{{}}]*\}}','',s)
+          st.write_text(s,encoding='utf-8')
+
+          for name in ('field-photos.css','flagship-visuals.css','image-pause.css'):
+              q=root/name
+              if q.exists(): q.unlink()
+
+          for q in list(root.rglob('*')):
+              if q.is_file() and q.as_posix()!='assets/images/ysi-hero-real.jpg' and q.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif','.avif'}:
+                  q.unlink()
+
+          (root/'assets/images/README.md').write_text('# YSI Africa image directory\n\nOnly two intentional assets remain:\n\n- `ysi-hero-real.jpg` — the single public content photograph, used only as the homepage hero.\n- `favicon.svg` — browser/site interface icon.\n\nAll other photographs, illustrations, image placeholders, galleries, and concept-image assets were permanently removed on 2026-09-03. Future imagery starts from a clean slate.\n',encoding='utf-8')
+
+          ras=sorted(q.as_posix() for q in root.rglob('*') if q.is_file() and q.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif','.avif'})
+          if ras!=['assets/images/ysi-hero-real.jpg']: raise SystemExit(f'raster residue {ras}')
+          idx=(root/'index.html').read_text(encoding='utf-8')
+          if len(re.findall(r'<img\b',idx,re.I))!=1 or 'ysi-hero-real.jpg' not in idx: raise SystemExit('homepage image audit failed')
+          for q in root.glob('*.html'):
+              body=q.read_text(encoding='utf-8')
+              if q.name!='index.html' and re.search(r'<(?:img|figure)\b',body,re.I): raise SystemExit(f'image markup remains in {q}')
+              if any(x in body for x in ('image-pause.css','field-photos.css','flagship-visuals.css')): raise SystemExit(f'image stylesheet reference remains in {q}')
+          allowed={'ysi-hero-real.jpg','favicon.svg'}; bad=[]
+          for q in root.rglob('*'):
+              if not q.is_file() or q.suffix.lower() not in {'.html','.css','.js','.md','.xml','.txt','.yml','.yaml'}: continue
+              try: body=q.read_text(encoding='utf-8')
+              except UnicodeDecodeError: continue
+              for name in re.findall(r'(?:https://ysiafrica\.org)?/?assets/images/([A-Za-z0-9._-]+)',body):
+                  if name not in allowed: bad.append((q.as_posix(),name))
+          if bad: raise SystemExit(f'forbidden image references {bad}')
+          PY
+
+          rm -f .github/workflows/purge-secondary-images.yml .github/workflows/purge-secondary-images-v2.yml .github/workflows/purge-secondary-images-v3.yml
+          git config user.name 'YSI Website Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Permanently delete all secondary site imagery'
+          git push
