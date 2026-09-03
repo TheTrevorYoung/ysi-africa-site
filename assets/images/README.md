@@ -1,10 +1,16 @@
 # YSI Africa Website Image Library
 
-This is the canonical repository folder for all visual image assets used by ysiafrica.org.
+`assets/images/` is the canonical **production image folder** for ysiafrica.org.
 
-Paired Google Drive folder: `YSI Africa / YSI Website Image Library`.
+Google Drive source library: `YSI Africa / YSI Website Image Library`.
 
-## Rule
-All website JPG, JPEG, PNG, WEBP, GIF and SVG files belong in `assets/images/`. Pages, stylesheets and metadata should reference images from this folder.
+## Operating rule
 
-The Google Drive and GitHub folders should use matching approved filenames.
+1. Google Drive is the source image library and may contain more images than the website uses, including candidates and archived choices.
+2. GitHub contains only the production subset actually needed by the website.
+3. Every image added to this repository must first exist in the Google Drive source library.
+4. Repository image filenames should match their Drive-source filenames.
+5. Website pages, stylesheets and metadata must reference production images only from `assets/images/`.
+6. Do not store image chunks, base64 staging files, temporary exports, test copies, or duplicate image formats in the repository after the production file is established.
+
+In short: **Drive may be larger than GitHub; GitHub must always be traceable back to Drive.**
