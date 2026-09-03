@@ -60,16 +60,7 @@ if (heroPhoto && homeHero) {
   const caption = heroPhoto.querySelector('figcaption');
   if (caption) caption.textContent = 'Documentary field photography from Lumley Beach cleanup work in Freetown.';
 
-  // Lightweight visual proof rail: two additional real field images, no carousel library.
-  if (!heroPhoto.querySelector('.hero-proof-rail')) {
-    const rail = document.createElement('div');
-    rail.className = 'hero-proof-rail';
-    rail.setAttribute('aria-label', 'Additional YSI field evidence');
-    rail.innerHTML = `
-      <figure><img src="/assets/images/ysi-field-waste-stream.jpg?v=20260903jpgsource2" loading="lazy" decoding="async" alt="Mixed coastal waste documented during YSI field work at Lumley Beach"><figcaption>Waste-stream conditions</figcaption></figure>
-      <figure><img src="/assets/images/ysi-field-collection-logistics.jpg?v=20260903jpgsource2" loading="lazy" decoding="async" alt="Documented collection and field logistics during YSI environmental work in Freetown"><figcaption>Collection & field logistics</figcaption></figure>`;
-    heroPhoto.appendChild(rail);
-  }
+
 }
 
 if (homeHero) {
@@ -328,7 +319,6 @@ if (!document.getElementById('institutional-site-styles')) {
   style.textContent = `
     .hero-funder-path{display:inline-block;margin-top:14px;color:var(--green);font-weight:900;text-decoration:none;font-size:.84rem}.hero-funder-path:hover{text-decoration:underline}
     img.field-hero-image{display:block;width:100%;aspect-ratio:1.44/1;object-fit:cover;object-position:center;border-radius:inherit}
-    .hero-proof-rail{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0}.hero-proof-rail figure{margin:0;position:relative;overflow:hidden;border-radius:12px;background:#eef4ef;border:1px solid var(--line)}.hero-proof-rail img{display:block;width:100%;height:92px;object-fit:cover}.hero-proof-rail figcaption{padding:7px 9px;color:var(--muted);font-size:.68rem;font-weight:800}
     .impact-evidence-link{display:block;margin-top:8px;color:var(--green);font-size:.72rem;font-weight:900;text-decoration:none}
     .community-entry-home{padding-top:0;background:#fff}.community-entry-card{border:1px solid #d7e3d9;border-radius:20px;padding:30px 34px;display:grid;grid-template-columns:1.25fr .75fr;gap:32px;align-items:center;background:linear-gradient(120deg,#f7faf7,#eef7e9)}.community-entry-card h2{font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:10px}.community-entry-card p:last-child{color:var(--muted);max-width:760px}.community-entry-actions{display:grid;gap:12px;justify-items:start}
     .institutional-proof-strip{background:#f8fbf8;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.institutional-proof-grid{display:grid;grid-template-columns:.82fr 1.18fr}.coverage-proof,.engagement-proof{padding:24px 27px}.coverage-proof{border-right:1px solid var(--line)}
@@ -337,7 +327,6 @@ if (!document.getElementById('institutional-site-styles')) {
     .governance-home{background:#fff}.governance-home-card{border:1px solid #d7e3d9;background:#f7faf7;border-radius:20px;padding:34px 38px;display:grid;grid-template-columns:1.3fr .7fr;gap:34px;align-items:center}.governance-home-card h2{font-size:clamp(1.9rem,3vw,2.75rem);margin-bottom:12px}.governance-home-card p:last-child{color:var(--muted);max-width:760px}.governance-home-actions{justify-self:end}.governance-home-actions .btn{white-space:nowrap}.light-outline-btn{border-color:rgba(255,255,255,.6)!important;color:#fff!important;background:transparent!important}
     .dossier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px}.dossier-grid article{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}.dossier-grid b,.dossier-grid strong,.dossier-grid span{display:block}.dossier-grid b{color:var(--green2);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}.dossier-grid strong{margin:9px 0 6px;color:var(--green);font-size:1rem}.dossier-grid span{color:var(--muted);font-size:.84rem;line-height:1.45}.dossier-note{margin-top:18px;border-left:4px solid var(--green);background:#fff;padding:18px 20px;border-radius:0 12px 12px 0;color:#405047}
     @media(max-width:1040px){.community-entry-card,.institutional-proof-grid,.governance-home-card{grid-template-columns:1fr}.coverage-proof{border-right:0;border-bottom:1px solid var(--line)}.governance-home-actions{justify-self:start}.dossier-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:760px){.hero-proof-rail img{height:76px}.engagement-chips,.dossier-grid{grid-template-columns:1fr}.engagement-head{display:block}.engagement-head span{display:block;margin-top:4px}.coverage-proof,.engagement-proof{padding:20px}.community-entry-card,.governance-home-card{padding:24px 20px}.hero-funder-path{margin-top:12px}}
   `;
   document.head.appendChild(style);
 }
