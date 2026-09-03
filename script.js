@@ -66,8 +66,8 @@ if (heroPhoto && homeHero) {
     rail.className = 'hero-proof-rail';
     rail.setAttribute('aria-label', 'Additional YSI field evidence');
     rail.innerHTML = `
-      <figure><img src="/assets/images/ysi-field-waste-stream.webp" loading="lazy" decoding="async" alt="Mixed coastal waste documented during YSI field work at Lumley Beach"><figcaption>Waste-stream conditions</figcaption></figure>
-      <figure><img src="/assets/images/ysi-field-collection-logistics.webp" loading="lazy" decoding="async" alt="Documented collection and field logistics during YSI environmental work in Freetown"><figcaption>Collection & field logistics</figcaption></figure>`;
+      <figure><img src="/assets/images/ysi-field-waste-stream.jpg?v=20260903jpgsource2" loading="lazy" decoding="async" alt="Mixed coastal waste documented during YSI field work at Lumley Beach"><figcaption>Waste-stream conditions</figcaption></figure>
+      <figure><img src="/assets/images/ysi-field-collection-logistics.jpg?v=20260903jpgsource2" loading="lazy" decoding="async" alt="Documented collection and field logistics during YSI environmental work in Freetown"><figcaption>Collection & field logistics</figcaption></figure>`;
     heroPhoto.appendChild(rail);
   }
 }
