@@ -14,12 +14,12 @@ if (nav) {
     ['evidence.html', 'Evidence', ''],
     ['governance.html', 'Governance & Accountability', ''],
     ['funders.html', 'For Funders', 'nav-cta'],
-    ['mailto:info@ysiafrica.org?subject=YSI%20Africa%20Inquiry', 'Contact Us', '']
+    ['contact.html', 'Contact Us', '']
   ];
   nav.innerHTML = links.map(([href, text, className]) => {
     const currentFile = location.pathname.split('/').pop() || 'index.html';
     const targetFile = href.split('#')[0].split('?')[0];
-    const current = targetFile && !href.startsWith('mailto:') && currentFile === targetFile ? ' aria-current="page"' : '';
+    const current = targetFile && currentFile === targetFile ? ' aria-current="page"' : '';
     return `<a${className ? ` class="${className}"` : ''} href="${href}"${current}>${text}</a>`;
   }).join('');
 }
