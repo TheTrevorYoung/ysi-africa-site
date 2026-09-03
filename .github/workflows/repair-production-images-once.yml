@@ -1,0 +1,51 @@
+name: Repair website production images once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/repair-production-images-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Pillow
+        run: python -m pip install --quiet pillow
+      - name: Rebuild Step 15 and Step 16 from validated atlas
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          atlas = Image.open('assets/images/flagship-hq.webp').convert('RGB')
+          if atlas.size != (2400, 2400):
+              raise SystemExit(f'Unexpected atlas size: {atlas.size}')
+          cell = 600
+          outputs = {
+              'assets/images/step15-final.webp': (2*cell, 3*cell, 3*cell, 4*cell),
+              'assets/images/step16-final.webp': (3*cell, 3*cell, 4*cell, 4*cell),
+          }
+          for path, box in outputs.items():
+              out = atlas.crop(box)
+              out.save(path, 'WEBP', quality=90, method=6)
+              check = Image.open(path)
+              check.verify()
+              print(path, Path(path).stat().st_size)
+          PY
+      - name: Commit repaired production images
+        run: |
+          git config user.name 'YSI Website Image Repair'
+          git config user.email 'actions@users.noreply.github.com'
+          git add assets/images/step15-final.webp assets/images/step16-final.webp
+          if git diff --cached --quiet; then
+            echo 'No image changes needed.'
+            exit 0
+          fi
+          git commit -m 'Repair Step 15 and 16 production images'
+          git push
