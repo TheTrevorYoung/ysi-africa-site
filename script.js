@@ -47,7 +47,7 @@ if (heroPhoto && homeHero) {
   if (!heroImage) {
     heroImage = document.createElement('img');
     heroImage.className = 'field-hero-image';
-    heroImage.src = 'assets/images/ysi-hero-real.jpg?v=20260902realhero2';
+    heroImage.src = '/assets/images/ysi-hero-real.jpg?v=20260903imgfix3';
     heroImage.alt = 'Documentary field cleanup work at Lumley Beach in Freetown';
     heroImage.loading = 'eager';
     heroImage.decoding = 'async';
@@ -66,8 +66,8 @@ if (heroPhoto && homeHero) {
     rail.className = 'hero-proof-rail';
     rail.setAttribute('aria-label', 'Additional YSI field evidence');
     rail.innerHTML = `
-      <figure><img src="assets/images/ysi-field-waste-stream.webp" loading="lazy" decoding="async" alt="Mixed coastal waste documented during YSI field work at Lumley Beach"><figcaption>Waste-stream conditions</figcaption></figure>
-      <figure><img src="assets/images/ysi-field-collection-logistics.webp" loading="lazy" decoding="async" alt="Documented collection and field logistics during YSI environmental work in Freetown"><figcaption>Collection & field logistics</figcaption></figure>`;
+      <figure><img src="/assets/images/ysi-field-waste-stream.webp" loading="lazy" decoding="async" alt="Mixed coastal waste documented during YSI field work at Lumley Beach"><figcaption>Waste-stream conditions</figcaption></figure>
+      <figure><img src="/assets/images/ysi-field-collection-logistics.webp" loading="lazy" decoding="async" alt="Documented collection and field logistics during YSI environmental work in Freetown"><figcaption>Collection & field logistics</figcaption></figure>`;
     heroPhoto.appendChild(rail);
   }
 }
