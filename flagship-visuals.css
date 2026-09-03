@@ -3,104 +3,40 @@
 @media(max-width:1040px){.visual-hero-grid{grid-template-columns:1fr}.flagship-hero-side{grid-template-columns:1.15fr .85fr;align-items:start}.visual-step-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.illustrated-split{grid-template-columns:1fr;gap:28px}}
 @media(max-width:760px){.flagship-hero-side{grid-template-columns:1fr}.network-canvas{border-radius:14px}.concept-note{display:block;padding:15px}.concept-note strong{display:block;margin-bottom:7px}.visual-step-grid{grid-template-columns:1fr;gap:16px}.visual-step-copy{padding:15px 16px 18px}.visual-step-copy h3{font-size:1.08rem}.visual-step-copy p{font-size:.86rem}.visual-pair,.energy-visuals{grid-template-columns:1fr 1fr;gap:9px}.detail-visual{border-radius:12px}.concept-caption{font-size:.68rem}.vision-visual{margin-top:20px}}
 
-/* Standardized Step 15 banner — same header system as the locked visual series. */
-.network-canvas,
-.step-thumb.step-15,
-.step-thumb.step-16,
-.detail-visual.step-15{
-  background-image:url("assets/images/step15-standardized.webp?v=20260901std15bb");
-  background-size:cover;
-  background-position:center;
-}
-
-/* Standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
+/* Canonical individual production images. */
 .step-thumb.step-06,
 .detail-visual.step-06{
-  background-image:url("assets/images/step06-standardized.webp?v=20260901std4a");
+  background-image:url("assets/images/step06-standardized.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
 .step-thumb.step-10,
 .detail-visual.step-10{
-  background-image:url("assets/images/step10-standardized.webp?v=20260901std4a");
+  background-image:url("assets/images/step10-standardized.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
 .step-thumb.step-12,
 .detail-visual.step-12{
-  background-image:url("assets/images/step12-standardized.webp?v=20260901std4a");
+  background-image:url("assets/images/step12-standardized.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
 .step-thumb.step-14,
 .detail-visual.step-14{
-  background-image:url("assets/images/step14-standardized.webp?v=20260901std4a");
+  background-image:url("assets/images/step14-standardized.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
-
-/* Final standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
-.step-thumb.step-06,
-.detail-visual.step-06{
-  background-image:url("assets/images/step06-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-10,
-.detail-visual.step-10{
-  background-image:url("assets/images/step10-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-12,
-.detail-visual.step-12{
-  background-image:url("assets/images/step12-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-14,
-.detail-visual.step-14{
-  background-image:url("assets/images/step14-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-
-/* Final standardized banners for 06, 10, 12 and 14 — matched to 01, 07 and 15. */
-.step-thumb.step-06,
-.detail-visual.step-06{
-  background-image:url("assets/images/step06-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-10,
-.detail-visual.step-10{
-  background-image:url("assets/images/step10-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-12,
-.detail-visual.step-12{
-  background-image:url("assets/images/step12-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-.step-thumb.step-14,
-.detail-visual.step-14{
-  background-image:url("assets/images/step14-standardized.webp?v=20260901std4b");
-  background-size:cover;
-  background-position:center;
-}
-
-/* FINAL APPROVED STEP 15 & 16 — 2 Sep 2026 */
 .step-thumb.step-15,
 .detail-visual.step-15{
-  background-image:url("assets/images/step15-final.webp?v=20260902final");
+  background-image:url("assets/images/step15-final.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
 .network-canvas,
 .step-thumb.step-16{
-  background-image:url("assets/images/step16-final.webp?v=20260902final");
+  background-image:url("assets/images/step16-final.webp?v=20260902clean1");
   background-size:cover;
   background-position:center;
 }
