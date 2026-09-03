@@ -1,9 +1,13 @@
-// YSI Africa shared site behavior and institutional-funder journey.
+// YSI Africa shared site behavior.
+// Homepage hierarchy follows the approved v1.1 direction: YSI Africa first,
+// institutional funder pathway visible but secondary.
 
 const nav = document.querySelector('.nav');
 const menuButton = document.querySelector('.menu');
 
 // Standardize the principal navigation across every public page.
+// Governance remains accessible through About, For Funders, the footer and contextual links,
+// rather than competing with YSI's environmental work in the principal menu.
 if (nav) {
   const onHome = /(^|\/)index\.html$/.test(location.pathname) || location.pathname === '/' || location.pathname.endsWith('/ysi-africa-site/');
   const links = [
@@ -12,9 +16,8 @@ if (nav) {
     ['flagship.html', 'Waste Project', ''],
     ['aberdeen.html', 'Aberdeen', ''],
     ['evidence.html', 'Evidence', ''],
-    ['governance.html', 'Governance & Accountability', ''],
-    ['funders.html', 'For Funders', 'nav-cta'],
-    ['contact.html', 'Contact Us', '']
+    ['contact.html', 'Contact Us', ''],
+    ['funders.html', 'For Funders & Partners', 'nav-cta']
   ];
   nav.innerHTML = links.map(([href, text, className]) => {
     const currentFile = location.pathname.split('/').pop() || 'index.html';
@@ -50,42 +53,71 @@ if (heroPhoto) {
   if (caption) caption.textContent = 'Documentary field photography from Lumley Beach cleanup work in Freetown.';
 }
 
-// Homepage: move the institutional story from cleanup alone to system change.
+// HOMEPAGE REBALANCE v1.1 -----------------------------------------------------
 const homeHero = document.querySelector('.hero#top');
 if (homeHero) {
   const heading = homeHero.querySelector('h1');
   if (heading) heading.innerHTML = 'From cleanup to <span>system change.</span>';
+
   const intro = homeHero.querySelector('.intro');
-  if (intro) intro.innerHTML = '<strong>YSI Africa (Young Sustainability Initiative)</strong> is a Sierra Leonean environmental organization using direct field experience to build measurable systems for waste interception, recovery, coastal protection and environmental learning. Its public record includes 20,000+ kg of waste removed through field activity in Freetown; the evidence page discloses the current proof status and the stronger monitoring standard now being built.';
+  if (intro) {
+    intro.innerHTML = '<strong>YSI Africa (Young Sustainability Initiative)</strong> is a Sierra Leonean environmental organization using direct field experience to build practical systems across waste management, circular economy, coastal and wetland protection, and community environmental action. We move from field work to measurement, testing and evidence-led decisions about what should improve or scale.';
+  }
+
   const actions = homeHero.querySelector('.actions');
-  if (actions) actions.innerHTML = '<a class="btn btn-primary" href="funders.html">For Funders</a><a class="btn btn-secondary" href="evidence.html">See the Evidence</a>';
+  if (actions) {
+    actions.innerHTML = '<a class="btn btn-primary" href="#work">Explore Our Work</a><a class="btn btn-secondary" href="evidence.html">See the Evidence</a>';
+    let funderPath = homeHero.querySelector('.hero-funder-path');
+    if (!funderPath) {
+      funderPath = document.createElement('a');
+      funderPath.className = 'hero-funder-path';
+      actions.insertAdjacentElement('afterend', funderPath);
+    }
+    funderPath.href = 'funders.html';
+    funderPath.textContent = 'For Funders & Partners →';
+  }
 }
 
-// Homepage: make the 20,000+ kg proof hook inspectable.
+// Keep the strongest quantitative proof point simple on the homepage;
+// methodology and evidence limitations remain on the Evidence page.
 document.querySelectorAll('.impact-item.verified').forEach(item => {
+  const span = item.querySelector('span');
   const small = item.querySelector('small');
-  if (small) small.textContent = 'YSI public impact claim — evidence chain under reconstruction';
-  if (!item.querySelector('.impact-evidence-link')) {
-    const link = document.createElement('a');
+  if (span) span.textContent = 'Waste removed';
+  if (small) small.textContent = 'Through documented field activity in Freetown';
+  let link = item.querySelector('.impact-evidence-link');
+  if (!link) {
+    link = document.createElement('a');
     link.className = 'impact-evidence-link';
-    link.href = 'evidence.html#impact-dossier';
-    link.textContent = 'View the evidence →';
     item.appendChild(link);
   }
+  link.href = 'evidence.html#impact-dossier';
+  link.textContent = 'View evidence & methodology →';
 });
 
-document.querySelectorAll('.status-item').forEach(item => {
-  const label = item.querySelector('b');
-  if (label && label.textContent.trim() === 'Verified public impact') label.textContent = 'Public impact claim';
-});
+// Keep project status clear and put the two current system-development projects
+// directly after the documented Lumley Beach field work.
+const projectStack = document.querySelector('#projects .project-stack');
+if (projectStack) {
+  const cards = Array.from(projectStack.querySelectorAll('.project'));
+  const rank = card => {
+    const name = (card.querySelector('h3')?.textContent || '').trim().toLowerCase();
+    if (name.includes('lumley')) return 0;
+    if (name === 'waste project' || name.includes('local waste')) return 1;
+    if (name.includes('aberdeen')) return 2;
+    return 9;
+  };
+  cards.sort((a, b) => rank(a) - rank(b)).forEach(card => projectStack.appendChild(card));
+}
 
-// Homepage: independent coverage + accurately labeled institutional engagement.
-const impactStrip = document.querySelector('.impact-strip');
-if (impactStrip && !document.querySelector('.institutional-proof-strip')) {
-  const section = document.createElement('section');
-  section.className = 'institutional-proof-strip';
-  section.setAttribute('aria-label', 'Independent coverage and institutional engagement');
-  section.innerHTML = `
+// Institutional engagement remains useful evidence, but it should follow the
+// organization's mission, projects, About and evidence/accountability story.
+let proofStrip = document.querySelector('.institutional-proof-strip');
+if (!proofStrip && homeHero) {
+  proofStrip = document.createElement('section');
+  proofStrip.className = 'institutional-proof-strip';
+  proofStrip.setAttribute('aria-label', 'Independent coverage and institutional engagement');
+  proofStrip.innerHTML = `
     <div class="wrap institutional-proof-grid">
       <div class="coverage-proof">
         <small>Independent coverage</small>
@@ -102,31 +134,51 @@ if (impactStrip && !document.querySelector('.institutional-proof-strip')) {
         </div>
       </div>
     </div>`;
-  impactStrip.insertAdjacentElement('afterend', section);
 }
 
-// Homepage: make institutional capacity visible before the final contact section.
+const transparencySection = document.querySelector('section#transparency');
+if (proofStrip && transparencySection) {
+  transparencySection.insertAdjacentElement('afterend', proofStrip);
+}
+
+// Governance remains visible on the homepage, but as an organizational credibility
+// signal rather than a funder due-diligence pitch.
 const homeContact = document.querySelector('section.contact#contact');
-if (homeContact && !document.querySelector('.funder-readiness-home')) {
-  const section = document.createElement('section');
-  section.className = 'section funder-readiness-home';
-  section.innerHTML = `
-    <div class="wrap funder-readiness-card">
+let governanceHome = document.querySelector('.funder-readiness-home, .governance-home');
+if (homeContact) {
+  if (!governanceHome) {
+    governanceHome = document.createElement('section');
+  }
+  governanceHome.className = 'section governance-home';
+  governanceHome.innerHTML = `
+    <div class="wrap governance-home-card">
       <div>
         <p class="eyebrow">Governance & accountability</p>
-        <h2>Can YSI receive institutional funding and account for it?</h2>
-        <p>Review YSI's legal record, leadership, internal controls, safeguarding, monitoring architecture, open readiness items and forwardable funder materials in one place.</p>
+        <h2>Building strong systems behind the environmental work.</h2>
+        <p>YSI Africa is building the governance, financial controls, safeguarding, monitoring and evidence systems required for responsible environmental work and institutional partnership.</p>
       </div>
-      <div class="funder-readiness-actions">
-        <a class="btn btn-primary" href="governance.html">Governance & Accountability</a>
-        <a class="btn btn-secondary" href="funders.html">For Funders</a>
+      <div class="governance-home-actions">
+        <a class="btn btn-secondary" href="governance.html">Learn about our governance →</a>
       </div>
     </div>`;
-  homeContact.insertAdjacentElement('beforebegin', section);
+
+  if (proofStrip && proofStrip.isConnected) proofStrip.insertAdjacentElement('afterend', governanceHome);
+  else homeContact.insertAdjacentElement('beforebegin', governanceHome);
+
+  // Broad closing invitation: funding is one collaboration route, not the whole story.
+  const eyebrow = homeContact.querySelector('.eyebrow');
+  const heading = homeContact.querySelector('h2');
+  const paragraph = homeContact.querySelector('p:not(.eyebrow)');
+  const actions = homeContact.querySelector('.contact-actions');
+  if (eyebrow) eyebrow.textContent = 'Work with YSI Africa';
+  if (heading) heading.textContent = 'Practical environmental solutions need the right collaborators.';
+  if (paragraph) paragraph.textContent = 'YSI Africa welcomes collaboration with communities, public institutions, environmental organizations, researchers, technical experts, responsible businesses and funding partners working toward practical environmental solutions in Sierra Leone.';
+  if (actions) actions.innerHTML = '<a class="btn btn-primary light-btn" href="contact.html">Contact YSI</a><a class="btn btn-secondary light-outline-btn" href="funders.html">For Funders & Partners</a>';
 }
 
-// Evidence page: turn the 20,000+ kg number into an inspectable evidence dossier now,
-// while clearly showing what remains to be reconstructed.
+// EVIDENCE PAGE ---------------------------------------------------------------
+// Turn the 20,000+ kg number into an inspectable dossier on the Evidence page,
+// where the detailed qualification belongs.
 const verifiedSection = document.querySelector('section#verified');
 if (verifiedSection && !document.getElementById('impact-dossier')) {
   const section = document.createElement('section');
@@ -180,7 +232,7 @@ document.querySelectorAll('.proof-copy > p').forEach(p => {
   }
 });
 
-// Keep homepage Aberdeen project card aligned with the current project stage.
+// Keep older Aberdeen project cards aligned if encountered on a legacy page.
 document.querySelectorAll('.project h3').forEach((heading) => {
   if (heading.textContent.trim() !== 'Aberdeen Creek Protection') return;
   const card = heading.closest('.project');
@@ -202,7 +254,7 @@ document.querySelectorAll('.project h3').forEach((heading) => {
   }
 });
 
-// Replace inaccurate NGO schema typing with a more precise nonprofit organization type at runtime.
+// Replace inaccurate legacy NGO schema typing with a more precise nonprofit type at runtime.
 document.querySelectorAll('script[type="application/ld+json"]').forEach(node => {
   try {
     const obj = JSON.parse(node.textContent);
@@ -217,13 +269,15 @@ document.querySelectorAll('script[type="application/ld+json"]').forEach(node => 
   } catch (_) {}
 });
 
-// Shared styles for institutional additions.
+// Shared styles for the homepage hierarchy correction and evidence dossier.
 if (!document.getElementById('institutional-site-styles')) {
   const style = document.createElement('style');
   style.id = 'institutional-site-styles';
   style.textContent = `
+    .hero-funder-path{display:inline-block;margin-top:14px;color:var(--green);font-weight:900;text-decoration:none;font-size:.84rem}
+    .hero-funder-path:hover{text-decoration:underline}
     .impact-evidence-link{display:block;margin-top:8px;color:var(--green);font-size:.72rem;font-weight:900;text-decoration:none}
-    .institutional-proof-strip{background:#f8fbf8;border-bottom:1px solid var(--line)}
+    .institutional-proof-strip{background:#f8fbf8;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
     .institutional-proof-grid{display:grid;grid-template-columns:.82fr 1.18fr}
     .coverage-proof,.engagement-proof{padding:24px 27px}
     .coverage-proof{border-right:1px solid var(--line)}
@@ -233,16 +287,14 @@ if (!document.getElementById('institutional-site-styles')) {
     .engagement-head{display:flex;align-items:baseline;justify-content:space-between;gap:15px;margin-bottom:11px}.engagement-head span{color:var(--muted);font-size:.7rem}
     .engagement-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.engagement-chips>span{border:1px solid #d7e3d9;background:#fff;border-radius:11px;padding:12px}
     .engagement-chips b,.engagement-chips em{display:block}.engagement-chips b{color:var(--green);font-size:.78rem}.engagement-chips em{font-style:normal;color:var(--muted);font-size:.68rem;margin-top:3px}
-    .funder-readiness-home{background:#fff}
-    .funder-readiness-card{border:1px solid #cdddcf;background:linear-gradient(120deg,#eef7e9,#f5faf5);border-radius:22px;padding:42px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
-    .funder-readiness-card h2{font-size:clamp(2rem,3.5vw,3.15rem)}.funder-readiness-card p:last-child{color:var(--muted);max-width:760px}
-    .funder-readiness-actions{display:grid;gap:10px;justify-items:start}
+    .governance-home{background:#fff}.governance-home-card{border:1px solid #d7e3d9;background:#f7faf7;border-radius:20px;padding:34px 38px;display:grid;grid-template-columns:1.3fr .7fr;gap:34px;align-items:center}.governance-home-card h2{font-size:clamp(1.9rem,3vw,2.75rem);margin-bottom:12px}.governance-home-card p:last-child{color:var(--muted);max-width:760px}.governance-home-actions{justify-self:end}.governance-home-actions .btn{white-space:nowrap}
+    .light-outline-btn{border-color:rgba(255,255,255,.6)!important;color:#fff!important;background:transparent!important}
     .dossier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px}
     .dossier-grid article{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}
     .dossier-grid b,.dossier-grid strong,.dossier-grid span{display:block}.dossier-grid b{color:var(--green2);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}.dossier-grid strong{margin:9px 0 6px;color:var(--green);font-size:1rem}.dossier-grid span{color:var(--muted);font-size:.84rem;line-height:1.45}
     .dossier-note{margin-top:18px;border-left:4px solid var(--green);background:#fff;padding:18px 20px;border-radius:0 12px 12px 0;color:#405047}
-    @media(max-width:1040px){.institutional-proof-grid,.funder-readiness-card{grid-template-columns:1fr}.coverage-proof{border-right:0;border-bottom:1px solid var(--line)}.dossier-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:760px){.engagement-chips,.dossier-grid{grid-template-columns:1fr}.engagement-head{display:block}.engagement-head span{display:block;margin-top:4px}.coverage-proof,.engagement-proof{padding:20px}.funder-readiness-card{padding:28px 24px}}
+    @media(max-width:1040px){.institutional-proof-grid,.governance-home-card{grid-template-columns:1fr}.coverage-proof{border-right:0;border-bottom:1px solid var(--line)}.governance-home-actions{justify-self:start}.dossier-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:760px){.engagement-chips,.dossier-grid{grid-template-columns:1fr}.engagement-head{display:block}.engagement-head span{display:block;margin-top:4px}.coverage-proof,.engagement-proof{padding:20px}.governance-home-card{padding:26px 22px}.hero-funder-path{margin-top:12px}}
   `;
   document.head.appendChild(style);
 }
