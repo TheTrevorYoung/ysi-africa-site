@@ -1,0 +1,163 @@
+name: Purge all secondary site imagery v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/purge-secondary-images-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Permanently remove every image except the homepage hero
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOT = Path('.')
+          HERO_FILE = 'ysi-hero-real.jpg'
+          FAVICON_FILE = 'favicon.svg'
+
+          def sub(text, pattern, repl=''):
+              return re.sub(pattern, repl, text, flags=re.I | re.S)
+
+          for path in ROOT.glob('*.html'):
+              text = path.read_text(encoding='utf-8')
+              text = sub(text, r'\s*<link\b[^>]*href=["\'][^"\']*(?:image-pause|field-photos|flagship-visuals)\.css[^"\']*["\'][^>]*>')
+
+              if path.name == 'index.html':
+                  text = sub(text, r'<div\b[^>]*class=["\'][^"\']*\bhero-proof-rail\b[^"\']*["\'][^>]*>.*?</div>')
+                  hero_match = re.search(r'<figure\b[^>]*class=["\'][^"\']*\bhero-photo\b[^"\']*["\'][^>]*>.*?</figure>', text, flags=re.I | re.S)
+                  if not hero_match:
+                      raise SystemExit('Homepage hero figure not found; refusing destructive cleanup.')
+                  hero = (
+                      '<figure class="hero-photo">'
+                      '<img class="field-hero-image" src="/assets/images/ysi-hero-real.jpg" '
+                      'alt="Documentary field cleanup work at Lumley Beach in Freetown" '
+                      'loading="eager" decoding="async" fetchpriority="high">'
+                      '<figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown.</figcaption>'
+                      '</figure>'
+                  )
+                  placeholder = '<!-- YSI_HOMEPAGE_HERO_ONLY -->'
+                  text = text[:hero_match.start()] + placeholder + text[hero_match.end():]
+                  text = sub(text, r'<figure\b[^>]*>.*?</figure>')
+                  text = sub(text, r'<img\b[^>]*>')
+                  text = text.replace(placeholder, hero)
+              else:
+                  text = sub(text, r'<figure\b[^>]*>.*?</figure>')
+                  text = sub(text, r'<img\b[^>]*>')
+                  text = sub(text, r'<meta\b[^>]*(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*>')
+
+              for cls in ('hero-proof-rail','field-mosaic','field-gallery','field-shot','story-photo','hero-field-photo','system-figure','detail-visual','network-canvas'):
+                  text = sub(text, rf'<(?:div|section|aside)\b[^>]*class=["\'][^"\']*\b{re.escape(cls)}\b[^"\']*["\'][^>]*>\s*</(?:div|section|aside)>')
+
+              text = text.replace('class="wrap field-evidence-grid"', 'class="wrap"')
+              text = text.replace('class="wrap story-grid"', 'class="wrap"')
+
+              if path.name == 'technical-concept.html':
+                  text = text.replace('Conditional longer-term technical concept illustrations', 'Conditional longer-term technical concepts')
+                  text = text.replace('<strong>Concept illustrations only.</strong> These images do not depict equipment or facilities currently owned or operated by YSI Africa.', '<strong>Conditional concepts only.</strong> This sequence does not represent equipment or facilities currently owned or operated by YSI Africa.')
+                  text = text.replace('class="visual-step-grid"', 'class="step-text-grid"')
+                  text = text.replace('class="visual-step is-loop"', 'class="step-text-card"')
+                  text = text.replace('class="visual-step is-network"', 'class="step-text-card"')
+                  text = text.replace('class="visual-step"', 'class="step-text-card"')
+                  text = text.replace('class="visual-step-copy"', 'class="step-text-copy"')
+                  text = sub(text, r'\s*\.step-image\{[^{}]*\}')
+                  text = text.replace('</style>', '\n    .step-text-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}\n    .step-text-card{border:1px solid var(--line);border-radius:16px;padding:22px;background:#fff;min-height:180px}\n    .step-text-card b{display:block;color:var(--green2);font-size:.72rem;letter-spacing:.1em;margin-bottom:14px}\n    .step-text-card h3{margin:0 0 9px;color:var(--green);font-size:1.08rem}\n    .step-text-card p{margin:0;color:var(--muted);font-size:.86rem}\n    @media(max-width:1040px){.step-text-grid{grid-template-columns:repeat(2,1fr)}}\n    @media(max-width:760px){.step-text-grid{grid-template-columns:1fr}}\n  </style>', 1)
+
+              if path.name == 'flagship.html':
+                  text = text.replace('The original 16-step architecture is preserved separately.', 'The longer-term 16-step architecture is preserved separately as text-only technical reference.')
+                  text = text.replace('The detailed longer-term sequence — including the approved Step 15 and Step 16 visuals — has been moved out of the main project narrative. It remains available as a technical appendix for reviewers who want to inspect the full conditional architecture.', 'The detailed longer-term sequence has been moved out of the main project narrative. It remains available as a text-only technical appendix for reviewers who want to inspect the full conditional architecture.')
+
+              for selector in ('story-photo','field-gallery','field-shot','hero-field-photo','step-image'):
+                  text = sub(text, rf'\.{re.escape(selector)}(?:\s+(?:img|figcaption))?\{{[^{{}}]*\}}')
+
+              path.write_text(text, encoding='utf-8')
+
+          # Remove the JS block that can recreate the deleted secondary photographs.
+          script_path = ROOT / 'script.js'
+          script = script_path.read_text(encoding='utf-8')
+          marker = '  // Lightweight visual proof rail:'
+          start = script.find(marker)
+          if start != -1:
+              end_marker = '\n  }\n}'
+              end = script.find(end_marker, start)
+              if end == -1:
+                  raise SystemExit('Could not locate the end of the secondary-image JS block.')
+              script = script[:start] + script[end + len('\n  }'):]
+          if 'hero-proof-rail' in script or 'ysi-field-waste-stream' in script or 'ysi-field-collection-logistics' in script:
+              raise SystemExit('Secondary image recreation code remains in script.js; aborting.')
+          script_path.write_text(script, encoding='utf-8')
+
+          styles_path = ROOT / 'styles.css'
+          styles = styles_path.read_text(encoding='utf-8')
+          styles = re.sub(r'\n/\* TEMPORARY SECONDARY IMAGE PAUSE[\s\S]*\Z', '\n', styles)
+          for selector in ('field-mosaic','system-figure','hero-proof-rail'):
+              styles = re.sub(rf'\.{re.escape(selector)}(?:\s+(?:img|figcaption))?\{{[^{{}}]*\}}', '', styles)
+          styles_path.write_text(styles, encoding='utf-8')
+
+          for filename in ('field-photos.css','flagship-visuals.css','image-pause.css'):
+              p = ROOT / filename
+              if p.exists(): p.unlink()
+
+          for p in list(ROOT.rglob('*')):
+              if not p.is_file(): continue
+              if p.as_posix() == 'assets/images/ysi-hero-real.jpg': continue
+              if p.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif','.avif'}:
+                  p.unlink()
+
+          images_dir = ROOT / 'assets' / 'images'
+          (images_dir / 'README.md').write_text(
+              '# YSI Africa image directory\n\n'
+              'Current intentional contents:\n\n'
+              '- `ysi-hero-real.jpg` — the single retained public content photograph, used only as the main homepage hero.\n'
+              '- `favicon.svg` — browser/site interface icon.\n\n'
+              'All other photographs, illustrations, concept images, image placeholders, and related gallery assets were permanently removed on 2026-09-03. Future content imagery should be added from a clean slate and explicitly approved before publication.\n',
+              encoding='utf-8'
+          )
+
+          # Strict final audit before any commit is allowed.
+          raster_files = sorted(p.as_posix() for p in ROOT.rglob('*') if p.is_file() and p.suffix.lower() in {'.jpg','.jpeg','.png','.webp','.gif','.avif'})
+          if raster_files != ['assets/images/ysi-hero-real.jpg']:
+              raise SystemExit(f'Unexpected raster image residue: {raster_files}')
+
+          index = (ROOT / 'index.html').read_text(encoding='utf-8')
+          if len(re.findall(r'<img\b', index, flags=re.I)) != 1 or 'ysi-hero-real.jpg' not in index:
+              raise SystemExit('Homepage must contain exactly one image: the approved hero.')
+
+          for p in ROOT.glob('*.html'):
+              html = p.read_text(encoding='utf-8')
+              if p.name != 'index.html' and re.search(r'<(?:img|figure)\b', html, flags=re.I):
+                  raise SystemExit(f'Image/figure markup remains in {p.name}')
+              if any(x in html for x in ('image-pause.css','field-photos.css','flagship-visuals.css')):
+                  raise SystemExit(f'Deleted image stylesheet still referenced by {p.name}')
+
+          allowed = {FAVICON_FILE,HERO_FILE}
+          source_exts = {'.html','.css','.js','.md','.xml','.txt','.yml','.yaml'}
+          bad_refs = []
+          for p in ROOT.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in source_exts: continue
+              try: body = p.read_text(encoding='utf-8')
+              except UnicodeDecodeError: continue
+              for name in re.findall(r'(?:https://ysiafrica\.org)?/?assets/images/([A-Za-z0-9._-]+)', body):
+                  if name not in allowed: bad_refs.append((p.as_posix(), name))
+          if bad_refs:
+              raise SystemExit(f'Forbidden image references remain: {bad_refs}')
+          PY
+
+          rm -f .github/workflows/purge-secondary-images.yml .github/workflows/purge-secondary-images-v2.yml
+          git config user.name 'YSI Website Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git commit -m 'Permanently remove all secondary site imagery'
+          git push
