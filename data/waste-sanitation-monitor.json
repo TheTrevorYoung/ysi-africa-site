@@ -1,0 +1,74 @@
+[
+  {
+    "id": "2026-08-24-fcc-door-to-door",
+    "date": "2026-08-24",
+    "title": "FCC and Police Intensify Door-to-Door Waste Management Sensitisation",
+    "source": "Freetown City Council",
+    "source_type": "Primary / local government",
+    "url": "https://fcc.gov.sl/fcc-and-police-intensify-door-to-door-waste-management-sensitisation/",
+    "category": "Policy & enforcement",
+    "location": "Freetown",
+    "summary": "FCC and the Sierra Leone Police intensified household and business engagement under the #DortiMustGo campaign, focusing on registration, payment and compliance with the 2024 sanitation byelaws across Freetown's eight blocks.",
+    "why_it_matters": "Shows the byelaws moving from policy into implementation and provides a current picture of how formal waste collection is being operationalized in Freetown."
+  },
+  {
+    "id": "2026-06-17-moice-behaviour-change",
+    "date": "2026-06-17",
+    "title": "Deputy Mayor Calls for Behavioural Change as Freetown Enforces New Sanitation By-Laws",
+    "source": "Ministry of Information and Civic Education",
+    "source_type": "Primary / government",
+    "url": "https://moice.gov.sl/deputy-mayor-calls-for-behavioural-change-as-freetown-enforces-new-sanitation-by-laws/",
+    "category": "Public behaviour & sanitation",
+    "location": "Freetown",
+    "summary": "Freetown's Deputy Mayor emphasized that sanitation outcomes depend not only on infrastructure and enforcement but also on responsible disposal behaviour and public participation.",
+    "why_it_matters": "Supports a systems view of sanitation: infrastructure, community behaviour, incentives and enforcement need to work together."
+  },
+  {
+    "id": "2026-06-17-government-press-conference",
+    "date": "2026-06-17",
+    "title": "Government Weekly Press Conference: Freetown Waste Management and Sanitation Enforcement",
+    "source": "Ministry of Information and Civic Education",
+    "source_type": "Primary / government",
+    "url": "https://moice.gov.sl/government-weekly-press-conference-moice-16/",
+    "category": "Government policy & coordination",
+    "location": "Freetown",
+    "summary": "Government officials used the weekly press conference to outline enforcement of Freetown's solid and liquid waste collection byelaws and wider measures intended to address sanitation and civic-order challenges.",
+    "why_it_matters": "Useful for tracking how waste management is being framed across national and municipal institutions, not only within FCC."
+  },
+  {
+    "id": "2026-06-09-byelaws-in-force",
+    "date": "2026-06-09",
+    "title": "Solid & Liquid Waste Collection Byelaws 2024 Now in Full Force and Effect",
+    "source": "Freetown City Council",
+    "source_type": "Primary / local government",
+    "url": "https://fcc.gov.sl/solid-liquid-waste-collection-byelaws-2024-now-in-full-force-and-effect/",
+    "category": "Policy & regulation",
+    "location": "Freetown",
+    "summary": "FCC announced full enforcement of the 2024 solid and liquid waste collection byelaws and stated that households, businesses and institutions must use the designated approved waste service provider for their block.",
+    "why_it_matters": "This is a core operating constraint for any YSI pilot: YSI must complement the authorized collection structure rather than position itself as Freetown's municipal collector."
+  },
+  {
+    "id": "2025-11-25-kingtom-handover",
+    "date": "2025-11-25",
+    "title": "FCC Hands Over Kingtom Dumpsite to Boost Recycling and Jobs",
+    "source": "Freetown City Council",
+    "source_type": "Primary / local government",
+    "url": "https://fcc.gov.sl/fcc-hands-over-kingtom-dumpsite-to-boost-recycling-and-jobs/",
+    "category": "Infrastructure, recycling & jobs",
+    "location": "Kingtom, Freetown",
+    "summary": "FCC handed management responsibility for the Kingtom (Bomeh) dumpsite to Sierra Forever Green Ltd as part of a plan centered on recycling, lower operating costs and employment.",
+    "why_it_matters": "A significant structural development in Freetown's waste system. YSI should track implementation, material flows and actual performance rather than simply repeat projected outcomes."
+  },
+  {
+    "id": "2024-01-24-kingtom-waste-to-value",
+    "date": "2024-01-24",
+    "title": "Freetown Sanitation Target and Waste-to-Value at Kingtom",
+    "source": "Freetown City Council",
+    "source_type": "Primary / local government",
+    "url": "https://fcc.gov.sl/freetown-sanitation-target-of-at-least-60-of-solid-and-liquid-waste-is-safely-collected-and-disposed-off/",
+    "category": "Waste-to-value & sanitation infrastructure",
+    "location": "Kingtom, Freetown",
+    "summary": "FCC described the evolution of faecal-sludge treatment at Kingtom and efforts to convert treated material into products including fertilizer, briquettes and biogas.",
+    "why_it_matters": "Provides a Sierra Leone example of moving from disposal toward resource recovery and shows why technical validation and operating evidence matter before adopting a waste-to-value pathway."
+  }
+]
