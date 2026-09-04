@@ -6,6 +6,8 @@ Official website repository for **Young Sustainability Initiative (YSI Africa)**
 
 **About YSI Africa:** https://ysiafrica.org/about.html
 
+**Sierra Leone Sanitation & Waste Systems knowledge hub:** https://ysiafrica.org/sanitation-sierra-leone.html
+
 **Evidence & field work:** https://ysiafrica.org/evidence.html
 
 **Waste Project — Phase 0:** https://ysiafrica.org/flagship.html
