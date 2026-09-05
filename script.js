@@ -5,13 +5,14 @@ const nav = document.querySelector('.nav');
 const menuButton = document.querySelector('.menu');
 
 // Standardize the principal navigation across every public page.
+// Keep the number of top-level choices controlled while making YSI's principal
+// knowledge and project pathways immediately understandable.
 if (nav) {
-  const onHome = /(^|\/)index\.html$/.test(location.pathname) || location.pathname === '/' || location.pathname.endsWith('/ysi-africa-site/');
   const links = [
     ['about.html', 'About Us', ''],
-    [onHome ? '#work' : 'index.html#work', 'What We Do', ''],
-    ['flagship.html', 'Waste Project', ''],
-    ['aberdeen.html', 'Aberdeen', ''],
+    ['insights.html', 'Waste & Sanitation', ''],
+    ['flagship.html', 'Freetown Waste Recovery', ''],
+    ['aberdeen.html', 'Aberdeen Creek Recovery', ''],
     ['evidence.html', 'Evidence', ''],
     ['contact.html', 'Contact Us', ''],
     ['funders.html', 'For Funders & Partners', 'nav-cta']
@@ -24,6 +25,14 @@ if (nav) {
   }).join('');
 }
 
+// Keep legacy footer labels consistent without adding more footer links.
+document.querySelectorAll('.footer-links a').forEach(link => {
+  const href = (link.getAttribute('href') || '').split('#')[0];
+  if (href.endsWith('flagship.html')) link.textContent = 'Freetown Waste Recovery';
+  if (href.endsWith('aberdeen.html')) link.textContent = 'Aberdeen Creek Recovery';
+  if (href.endsWith('insights.html')) link.textContent = 'Waste & Sanitation';
+});
+
 if (menuButton && nav) {
   menuButton.addEventListener('click', () => {
     const open = nav.classList.toggle('open');
@@ -34,6 +43,28 @@ if (menuButton && nav) {
     menuButton.setAttribute('aria-expanded', 'false');
   }));
 }
+
+// Normalize public-facing project names wherever legacy labels remain in page content.
+document.querySelectorAll('h2, h3, strong').forEach(node => {
+  const text = node.textContent.trim();
+  if (text === 'Waste Project') node.textContent = 'Freetown Circular Waste Recovery Project';
+  if (text === 'Waste Project — Phase 0: Evidence & Operational Design') node.textContent = 'Freetown Circular Waste Recovery Project — Phase 0: Evidence & Operational Design';
+  if (text === 'Aberdeen Creek Protection') node.textContent = 'Aberdeen Creek Protection & Recovery Project';
+});
+
+// Give the canonical founder profile an explicit internal identity path from the About page.
+document.querySelectorAll('.person-card h3').forEach(heading => {
+  if (!heading.textContent.includes('Trevor') || !heading.textContent.includes('Young')) return;
+  if (heading.querySelector('a')) return;
+  const link = document.createElement('a');
+  link.href = 'trevor-young.html';
+  link.textContent = heading.textContent;
+  link.style.color = 'inherit';
+  link.style.textDecoration = 'none';
+  link.setAttribute('aria-label', 'Trevor Young founder profile');
+  heading.textContent = '';
+  heading.appendChild(link);
+});
 
 // HOME -----------------------------------------------------------------------
 const homeHero = document.querySelector('.hero#top');
@@ -59,8 +90,6 @@ if (heroPhoto && homeHero) {
 
   const caption = heroPhoto.querySelector('figcaption');
   if (caption) caption.textContent = 'Documentary field photography from Lumley Beach cleanup work in Freetown.';
-
-
 }
 
 if (homeHero) {
@@ -107,7 +136,7 @@ if (projectStack) {
   const rank = card => {
     const name = (card.querySelector('h3')?.textContent || '').trim().toLowerCase();
     if (name.includes('lumley')) return 0;
-    if (name === 'waste project' || name.includes('local waste')) return 1;
+    if (name.includes('freetown circular waste recovery') || name === 'waste project' || name.includes('local waste')) return 1;
     if (name.includes('aberdeen')) return 2;
     return 9;
   };
@@ -266,9 +295,10 @@ document.querySelectorAll('.proof-copy > p').forEach(p => {
 
 // Keep older Aberdeen project cards aligned if encountered on a legacy page.
 document.querySelectorAll('.project h3').forEach(heading => {
-  if (heading.textContent.trim() !== 'Aberdeen Creek Protection') return;
+  if (!heading.textContent.toLowerCase().includes('aberdeen')) return;
   const card = heading.closest('.project');
   if (!card) return;
+  heading.textContent = 'Aberdeen Creek Protection & Recovery Project';
   const pill = card.querySelector('.pill');
   if (pill) {
     pill.textContent = 'Development-stage project';
@@ -276,7 +306,7 @@ document.querySelectorAll('.project h3').forEach(heading => {
     pill.classList.add('dev');
   }
   const summary = card.querySelector('p');
-  if (summary) summary.textContent = 'YSI is developing an evidence-led Aberdeen Creek protection, baseline and ecological recovery programme focused on authority coordination, site evidence, waste-leakage pathways and technically defensible restoration decisions.';
+  if (summary) summary.textContent = 'YSI is developing the Aberdeen Creek Protection & Recovery Project around authority coordination, site evidence, waste-leakage pathways, ecological diagnosis and technically defensible recovery decisions.';
 });
 
 // SEO / STRUCTURED DATA -------------------------------------------------------
@@ -303,6 +333,12 @@ document.querySelectorAll('script[type="application/ld+json"]').forEach(node => 
           '@type': 'Place',
           name: 'Freetown, Sierra Leone',
           address: { '@type': 'PostalAddress', addressLocality: 'Freetown', addressCountry: 'SL' }
+        };
+        value.founder = {
+          '@type': 'Person',
+          '@id': 'https://ysiafrica.org/trevor-young.html#person',
+          name: 'Trevor Young',
+          url: 'https://ysiafrica.org/trevor-young.html'
         };
       }
       Object.values(value).forEach(visit);
