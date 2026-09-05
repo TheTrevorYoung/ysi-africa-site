@@ -49,13 +49,23 @@
   }
   </script>
   <style>
+    :root{--estuary:#3d7770;--sand:#d8c7a5;--warm:#f7f5ef}
     .institutional-proof-strip{background:#f8fbf8;border-bottom:1px solid var(--line)}
     .institutional-proof-grid{display:grid;grid-template-columns:.82fr 1.18fr}.coverage-proof,.engagement-proof{padding:24px 27px}.coverage-proof{border-right:1px solid var(--line)}
     .coverage-proof small,.engagement-head small{display:block;color:var(--green2);font-weight:900;text-transform:uppercase;letter-spacing:.09em;font-size:.66rem}.coverage-proof strong,.coverage-proof span{display:block}.coverage-proof strong{font-size:1.08rem;margin-top:5px}.coverage-proof span{color:var(--muted);font-size:.82rem;margin:3px 0 8px}.coverage-proof a{color:var(--green);font-weight:900;text-decoration:none;font-size:.78rem}
     .engagement-head{display:flex;align-items:baseline;justify-content:space-between;gap:15px;margin-bottom:11px}.engagement-head span{color:var(--muted);font-size:.7rem}.engagement-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.engagement-chips>span{border:1px solid #d7e3d9;background:#fff;border-radius:11px;padding:12px}.engagement-chips b,.engagement-chips em{display:block}.engagement-chips b{color:var(--green);font-size:.78rem}.engagement-chips em{font-style:normal;color:var(--muted);font-size:.68rem;margin-top:3px}
     .impact-evidence-link{display:block;margin-top:8px;color:var(--green);font-size:.72rem;font-weight:900;text-decoration:none}.funder-readiness-home{background:#fff}.funder-readiness-card{border:1px solid #cdddcf;background:linear-gradient(120deg,#eef7e9,#f5faf5);border-radius:22px;padding:42px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}.funder-readiness-card h2{font-size:clamp(2rem,3.5vw,3.15rem)}.funder-readiness-card p:last-child{color:var(--muted);max-width:760px}.funder-readiness-actions{display:grid;gap:10px;justify-items:start}
-    @media(max-width:1040px){.institutional-proof-grid,.funder-readiness-card{grid-template-columns:1fr}.coverage-proof{border-right:0;border-bottom:1px solid var(--line)}}
-    @media(max-width:760px){.engagement-chips{grid-template-columns:1fr}.engagement-head{display:block}.engagement-head span{display:block;margin-top:4px}.coverage-proof,.engagement-proof{padding:20px}.funder-readiness-card{padding:28px 24px}}
+    .hero-pathway{display:inline-block;margin-top:17px;color:var(--green);font-size:.78rem;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:.04em}.hero-pathway:hover{text-decoration:underline}
+    .field-evidence{background:linear-gradient(135deg,var(--warm) 0%,#f2f7f2 100%)}
+    .field-record{margin:0;background:#fff;border:1px solid #d8e2da;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(7,58,42,.08)}
+    .field-record img{display:block;width:100%;height:520px;object-fit:cover;background:#e5ebe5}
+    .field-record figcaption{padding:19px 21px 21px;color:#46544c;font-size:.83rem;line-height:1.5}
+    .field-record figcaption strong{display:block;color:var(--green);font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px}
+    .field-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#dce6df;border-top:1px solid #dce6df}
+    .field-meta div{background:#fff;padding:14px 15px}.field-meta b,.field-meta span{display:block}.field-meta b{color:var(--estuary);font-size:.64rem;text-transform:uppercase;letter-spacing:.08em}.field-meta span{font-size:.76rem;color:var(--muted);margin-top:3px}
+    .project-stack .project:nth-child(2){border-left:4px solid var(--estuary)}
+    @media(max-width:1040px){.institutional-proof-grid,.funder-readiness-card{grid-template-columns:1fr}.coverage-proof{border-right:0;border-bottom:1px solid var(--line)}.field-record img{height:440px}}
+    @media(max-width:760px){.engagement-chips{grid-template-columns:1fr}.engagement-head{display:block}.engagement-head span{display:block;margin-top:4px}.coverage-proof,.engagement-proof{padding:20px}.funder-readiness-card{padding:28px 24px}.field-record img{height:390px}.field-meta{grid-template-columns:1fr}.hero-pathway{margin-top:14px}}
   </style>
 </head>
 <body>
@@ -74,8 +84,9 @@
       <div class="hero-copy">
         <p class="eyebrow">Young Sustainability Initiative · YSI Africa · Sierra Leone</p>
         <h1>From cleanup to <span>system change.</span></h1>
-        <p class="intro"><strong>YSI Africa (Young Sustainability Initiative)</strong> is a Sierra Leonean environmental organization using direct field experience to build measurable systems for waste interception, recovery, coastal protection and environmental learning. Its public record includes 20,000+ kg of waste removed through field activity in Freetown; the evidence page discloses the current proof status and the stronger monitoring standard now being built.</p>
-        <div class="actions"><a class="btn btn-primary" href="funders.html">For Funders</a><a class="btn btn-secondary" href="evidence.html">See the Evidence</a></div>
+        <p class="intro"><strong>YSI Africa</strong> is a Sierra Leonean environmental organization building practical environmental systems from direct field experience in Freetown — moving from cleanup toward measurement, recovery, coastal protection and responsible replication.</p>
+        <div class="actions"><a class="btn btn-primary" href="#work">Explore Our Work</a><a class="btn btn-secondary" href="evidence.html">See the Evidence</a></div>
+        <a class="hero-pathway" href="funders.html">For Funders &amp; Partners →</a>
       </div>
       <figure class="hero-photo"><img class="field-hero-image" src="/assets/images/ysi-hero-real.jpg" alt="Documentary field cleanup work at Lumley Beach in Freetown" loading="eager" decoding="async" fetchpriority="high"><figcaption>Documentary field photography from Lumley Beach cleanup work in Freetown.</figcaption></figure>
     </div>
@@ -98,15 +109,25 @@
   </section>
 
   <section class="section field-evidence" aria-labelledby="field-evidence-title">
-    <div class="wrap">
-      <div class="field-evidence-copy"><p class="eyebrow">Field evidence</p><h2 id="field-evidence-title">The work starts in the field.</h2><p class="lede">YSI's longer-term systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p><p>Direct field experience at Lumley Beach informs YSI's move from cleanup toward measurement, characterization, recovery and stronger environmental systems.</p><div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach · Freetown</span></div></div>
-      
+    <div class="wrap field-evidence-grid">
+      <div class="field-evidence-copy">
+        <p class="eyebrow">Field evidence</p>
+        <h2 id="field-evidence-title">The work starts in the field.</h2>
+        <p class="lede">YSI's systems work is grounded in direct experience with the waste stream, public-space cleanup and material handling in Freetown.</p>
+        <p>Field activity at Lumley Beach provides the physical context for YSI's move toward measurement, characterization, recovery and stronger environmental systems.</p>
+        <div class="field-proof"><strong>Documented field work</strong><span>Lumley Beach · Freetown</span></div>
+      </div>
+      <figure class="field-record">
+        <img src="/assets/images/lumley-field-2026-04-23.webp" alt="Two workers carrying out shoreline cleanup work at Lumley Beach in Freetown" loading="lazy" decoding="async">
+        <figcaption><strong>Field record</strong>Shoreline cleanup activity documented at Lumley Beach. The image is presented as field evidence of cleanup activity and operating context, not as Phase 0 measurement data.</figcaption>
+        <div class="field-meta" aria-label="Field record metadata"><div><b>Place</b><span>Lumley Beach, Freetown</span></div><div><b>Date</b><span>23 April 2026</span></div><div><b>Status</b><span>Documented field work</span></div></div>
+      </figure>
     </div>
   </section>
 
   <section class="section flagship-home" aria-labelledby="flagship-home-title">
     <div class="wrap flagship-home-grid">
-      <div class="flagship-home-copy"><p class="eyebrow">Waste Project · Current stage: Phase 0</p><h2 id="flagship-home-title">Measure first.<br><span>Build second.</span></h2><p>YSI is developing a coastal waste-leakage and resource-recovery initiative for Freetown. The current stage is evidence and operational design: find where leakage persists, measure and characterize it, test realistic recovery and routing options, understand real costs and decide what additional infrastructure — if any — is justified.</p><p class="flagship-home-note">Phase 0 is non-thermal. Current funding is focused on evidence and operational design; RDF/SRF and other thermal pathways remain later technical hypotheses subject to validation.</p><div class="actions"><a class="btn btn-primary" href="flagship.html">Explore the Waste Project</a></div></div>
+      <div class="flagship-home-copy"><p class="eyebrow">Freetown Circular Waste Recovery Project · Current stage: Phase 0</p><h2 id="flagship-home-title">Measure first.<br><span>Build second.</span></h2><p>YSI is developing a coastal waste-leakage and resource-recovery initiative for Freetown. The current stage is evidence and operational design: find where leakage persists, measure and characterize it, test realistic recovery and routing options, understand real costs and decide what additional infrastructure — if any — is justified.</p><p class="flagship-home-note">Phase 0 is non-thermal. Current funding is focused on evidence and operational design; RDF/SRF and other thermal pathways remain later technical hypotheses subject to validation.</p><div class="actions"><a class="btn btn-primary" href="flagship.html">Explore the Waste Project</a></div></div>
       <div class="flagship-home-flow" aria-label="Waste Project process summary"><div><strong>01</strong><span>Intercept</span><small>Test lawful leakage capture</small></div><div><strong>02</strong><span>Measure</span><small>Weigh and characterize</small></div><div><strong>03</strong><span>Recover</span><small>Test realistic pathways</small></div><div><strong>04</strong><span>Decide</span><small>Build only what evidence supports</small></div></div>
     </div>
   </section>
@@ -119,7 +140,7 @@
 
   <section class="section soft" id="projects">
     <div class="wrap project-layout"><div><p class="eyebrow">Projects & evidence</p><h2>Work already undertaken. Systems still being built.</h2><p class="lede">Completed field activity, current development work and technical hypotheses are labeled separately.</p></div>
-      <div class="project-stack"><article class="project featured"><span class="pill">Documented field work</span><h3>Lumley Beach Cleanup</h3><p>Cleanup and sanitation work at Lumley Beach established direct operating experience and the evidence base for YSI's move toward stronger waste systems.</p><a class="text-link" href="evidence.html#impact-dossier">Inspect the evidence status →</a></article><article class="project"><span class="pill dev">Current first phase</span><h3>Aberdeen Creek Protection, Baseline & Ecological Recovery</h3><p>Authority coordination, site evidence, waste-leakage analysis, ecological diagnosis and technical review before any physical intervention.</p><a class="text-link" href="aberdeen.html">Explore Aberdeen Creek →</a></article><article class="project"><span class="pill dev">Current Phase 0</span><h3>Waste Project</h3><p>Coastal leakage measurement, characterization, recovery/routing analysis, operating costs and evidence-led next-stage decisions.</p><a class="text-link" href="flagship.html">Explore the Waste Project →</a></article></div>
+      <div class="project-stack"><article class="project featured"><span class="pill">Documented field work</span><h3>Lumley Beach Cleanup</h3><p>Cleanup and sanitation work at Lumley Beach established direct operating experience and the evidence base for YSI's move toward stronger waste systems.</p><a class="text-link" href="evidence.html#impact-dossier">Inspect the evidence status →</a></article><article class="project"><span class="pill dev">Current first phase</span><h3>Aberdeen Creek Protection &amp; Recovery Project</h3><p>Authority coordination, site evidence, waste-leakage analysis, ecological diagnosis and technical review before any physical intervention.</p><a class="text-link" href="aberdeen.html">Explore Aberdeen Creek →</a></article><article class="project"><span class="pill dev">Current Phase 0</span><h3>Freetown Circular Waste Recovery Project</h3><p>Coastal leakage measurement, characterization, recovery/routing analysis, operating costs and evidence-led next-stage decisions.</p><a class="text-link" href="flagship.html">Explore the Waste Project →</a></article></div>
     </div>
   </section>
 
