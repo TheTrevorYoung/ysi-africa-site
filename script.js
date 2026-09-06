@@ -10,7 +10,7 @@ const menuButton = document.querySelector('.menu');
 if (nav) {
   const links = [
     ['about.html', 'About Us', ''],
-    ['insights.html', 'Waste & Sanitation', ''],
+    ['insights.html', 'News', ''],
     ['flagship.html', 'Freetown Waste Recovery', ''],
     ['aberdeen.html', 'Aberdeen Creek Recovery', ''],
     ['evidence.html', 'Evidence', ''],
@@ -30,7 +30,7 @@ document.querySelectorAll('.footer-links a').forEach(link => {
   const href = (link.getAttribute('href') || '').split('#')[0];
   if (href.endsWith('flagship.html')) link.textContent = 'Freetown Waste Recovery';
   if (href.endsWith('aberdeen.html')) link.textContent = 'Aberdeen Creek Recovery';
-  if (href.endsWith('insights.html')) link.textContent = 'Waste & Sanitation';
+  if (href.endsWith('insights.html')) link.textContent = 'News';
 });
 
 if (menuButton && nav) {
