@@ -4,6 +4,26 @@
 const nav = document.querySelector('.nav');
 const menuButton = document.querySelector('.menu');
 
+// Remove public sections explicitly marked for deletion during the September 2026
+// website simplification pass. Match distinctive section headings so surrounding
+// project content remains untouched.
+const removeSectionContaining = phrase => {
+  document.querySelectorAll('main section').forEach(section => {
+    if (section.textContent.includes(phrase)) section.remove();
+  });
+};
+
+const currentPath = location.pathname.toLowerCase();
+if (currentPath.endsWith('/aberdeen.html') || currentPath.endsWith('aberdeen.html')) {
+  removeSectionContaining('Evidence before intervention.');
+  removeSectionContaining('Relationships are described precisely.');
+  removeSectionContaining('Show movement without overstating maturity.');
+}
+if (currentPath.endsWith('/flagship.html') || currentPath.endsWith('flagship.html')) {
+  removeSectionContaining('A decision, not a predetermined facility.');
+  removeSectionContaining('Replication is an outcome to earn.');
+}
+
 // Standardize the principal navigation across every public page.
 // Keep the number of top-level choices controlled while making YSI's principal
 // knowledge and project pathways immediately understandable.
