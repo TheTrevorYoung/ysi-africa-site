@@ -1,3 +1,7 @@
 .institutional-home{background:#fff}.institutional-home-card{padding:42px 44px;display:grid;grid-template-columns:1.22fr .78fr;gap:44px;align-items:center}.institutional-home-card h2{font-size:clamp(2.2rem,4vw,3.8rem);margin-bottom:16px}.institutional-home-actions{display:grid;gap:12px;justify-items:start}.institutional-home-actions .btn-primary{background:#fff;color:var(--forest)}.institutional-home-actions .btn-primary:hover{background:#edf3ee}.institutional-home-actions .text-link{margin-top:2px}
+
+/* Removed from the public homepage during the September 2026 simplification pass. */
+.home-impact,.evidence-band{display:none!important}
+
 @media(max-width:1040px){.institutional-home-card{grid-template-columns:1fr}}
 @media(max-width:760px){.institutional-home-card{padding:30px 24px}}
