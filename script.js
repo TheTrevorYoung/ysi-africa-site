@@ -386,3 +386,12 @@ if (!document.getElementById('institutional-site-styles')) {
   `;
   document.head.appendChild(style);
 }
+
+// Load the shared bright visual bands for core inner pages.
+if (!document.querySelector('script[data-ysi-inner-visuals]')) {
+  const visualScript = document.createElement('script');
+  visualScript.src = 'inner-visuals.js?v=20260907-1';
+  visualScript.defer = true;
+  visualScript.dataset.ysiInnerVisuals = 'true';
+  document.body.appendChild(visualScript);
+}
