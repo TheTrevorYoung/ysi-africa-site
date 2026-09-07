@@ -1,0 +1,75 @@
+/* YSI Africa homepage visual refresh, 7 September 2026.
+   Goal: brighter public imagery, clearer hierarchy, concise institutional copy. */
+
+.home-light-hero{background:#f8fbf7;padding:52px 0 42px;border-bottom:1px solid #e4ece5}
+.home-light-hero-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:46px;align-items:center}
+.home-light-copy{padding:22px 0}
+.home-light-copy h1{font-size:clamp(3.2rem,6vw,6rem);line-height:.92;letter-spacing:-.06em;margin:0 0 24px;text-transform:uppercase;max-width:760px}
+.home-light-copy h1 span{color:var(--green)}
+.home-light-copy .intro{font-size:1.13rem;max-width:670px;color:#425049;margin:0}
+.home-light-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.home-light-media{margin:0;position:relative;background:#e7efe8;border-radius:26px;overflow:hidden;min-height:570px;box-shadow:0 24px 70px rgba(4,61,43,.10)}
+.home-light-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(1.08) saturate(1.03)}
+.home-light-media figcaption{position:absolute;left:18px;right:18px;bottom:18px;background:rgba(255,255,255,.93);backdrop-filter:blur(8px);padding:13px 15px;border-radius:12px;color:#3f4c45;font-size:.72rem;line-height:1.42;box-shadow:0 8px 26px rgba(0,0,0,.08)}
+.home-light-media figcaption strong{display:block;color:var(--green);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+
+.home-proof-strip{background:#fff;border-bottom:1px solid #e5ece6}
+.home-proof-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.home-proof-item{padding:22px 24px;border-right:1px solid #e5ece6}
+.home-proof-item:last-child{border-right:0}
+.home-proof-item strong,.home-proof-item span{display:block}
+.home-proof-item strong{color:var(--green);font-size:1.2rem;letter-spacing:-.02em}
+.home-proof-item span{color:var(--muted);font-size:.8rem;margin-top:4px}
+
+.home-story-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:64px;align-items:start}
+.home-story-copy{max-width:760px;color:var(--muted);font-size:1.06rem}
+.home-story-copy p{margin-top:0;margin-bottom:16px}
+
+.visual-story-section{background:#fff}
+.visual-story-head{display:grid;grid-template-columns:.78fr 1.22fr;gap:60px;align-items:end;margin-bottom:34px}
+.visual-story-head p:last-child{color:var(--muted);max-width:760px;margin:0}
+.visual-mosaic{display:grid;grid-template-columns:1.25fr .75fr .75fr;grid-template-rows:285px 285px;gap:14px}
+.visual-tile{position:relative;overflow:hidden;border-radius:20px;background:#edf2ed;margin:0;min-height:0}
+.visual-tile.large{grid-row:1/3}
+.visual-tile.wide{grid-column:2/4}
+.visual-tile img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(1.08) saturate(1.04)}
+.visual-tile.field img{filter:brightness(1.12) saturate(1.02)}
+.visual-tile figcaption{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.94);padding:10px 12px;border-radius:10px;color:#47534c;font-size:.68rem;line-height:1.35}
+.visual-tile figcaption strong{display:block;color:var(--green);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.visual-context-note{margin-top:14px;color:#68736d;font-size:.72rem}
+
+.place-grid{gap:18px}
+.place-card{box-shadow:0 12px 36px rgba(4,61,43,.06)}
+.place-card img,.visual-project-media img{filter:brightness(1.08) saturate(1.03)}
+.place-card .media-note,.visual-project .media-note{line-height:1.35}
+
+.system-section{background:#f4f8f4}
+.system-section .lede{max-width:850px}
+.system-rail{background:#fff}
+
+.institutional-home{background:#fff}
+.institutional-home-card{border:1px solid #dfe8e1;box-shadow:0 16px 45px rgba(4,61,43,.05)}
+
+@media(max-width:1040px){
+  .home-light-hero-grid,.home-story-grid,.visual-story-head{grid-template-columns:1fr}
+  .home-light-media{min-height:500px}
+  .home-proof-grid{grid-template-columns:repeat(2,1fr)}
+  .home-proof-item:nth-child(2){border-right:0}
+  .visual-mosaic{grid-template-columns:1fr 1fr;grid-template-rows:360px 260px 260px}
+  .visual-tile.large{grid-column:1/3;grid-row:auto}
+  .visual-tile.wide{grid-column:auto}
+}
+
+@media(max-width:760px){
+  .home-light-hero{padding:30px 0 28px}
+  .home-light-hero-grid{gap:22px}
+  .home-light-copy h1{font-size:clamp(2.75rem,14vw,4.25rem)}
+  .home-light-media{min-height:390px;border-radius:18px}
+  .home-light-media figcaption{left:10px;right:10px;bottom:10px}
+  .home-proof-grid{grid-template-columns:1fr}
+  .home-proof-item{border-right:0;border-bottom:1px solid #e5ece6;padding:17px 8px}
+  .home-proof-item:last-child{border-bottom:0}
+  .visual-mosaic{grid-template-columns:1fr;grid-template-rows:340px 250px 250px 250px}
+  .visual-tile.large,.visual-tile.wide{grid-column:auto;grid-row:auto}
+  .visual-tile{border-radius:14px}
+}
