@@ -1,5 +1,27 @@
 [
   {
+    "id": "2026-09-07-unicef-budget-brief-wash",
+    "date": "2026-09-07",
+    "title": "UNICEF Sierra Leone's 2026 Budget Brief",
+    "source": "UNICEF Sierra Leone",
+    "url": "https://www.unicef.org/sierraleone/reports/unicef-sierra-leones-2026-budget-brief",
+    "category": "WASH financing & public investment",
+    "location": "Sierra Leone",
+    "summary": "UNICEF Sierra Leone published its 2026 budget-brief series, including a dedicated Water, Sanitation and Hygiene brief assessing public financing, allocation trends and investment challenges affecting WASH services.",
+    "why_it_matters": "Adds a current financing layer to YSI's sanitation intelligence: infrastructure and service gaps need to be read alongside how much public money is allocated, how efficiently it is used and where financing constraints persist."
+  },
+  {
+    "id": "2026-09-07-freetown-biodigesters",
+    "date": "2026-09-07",
+    "title": "Technological innovation set to transform Freetown’s climate change response",
+    "source": "The Sierra Leone Telegraph",
+    "url": "https://www.thesierraleonetelegraph.com/technological-innovation-set-to-transform-freetowns-climate-change-response/",
+    "category": "Waste-to-value & sanitation infrastructure",
+    "location": "Congo Town and Hagan Street Market, Freetown",
+    "summary": "The Sierra Leone Telegraph reported on Freetown City Council biodigester installations in Congo Town and Hagan Street Market that are intended to convert organic and sanitation waste into biogas for household cooking and market electricity uses.",
+    "why_it_matters": "This is a current Freetown test of linking organic-waste management, sanitation, energy and market productivity. YSI should track actual feedstock reliability, maintenance, operating performance and costs rather than treating planned capacity or scale-up as proven outcomes."
+  },
+  {
     "id": "2026-08-24-fcc-door-to-door",
     "date": "2026-08-24",
     "title": "FCC and Police Intensify Door-to-Door Waste Management Sensitisation",
